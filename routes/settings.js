@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { requireAdmin } = require('../middleware/auth');
 const { getGuestModules, setGuestModules } = require('../lib/siteSettings');
+const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
 router.use(requireAdmin);
@@ -18,6 +19,11 @@ router.post('/guest-modules', (req, res) => {
     home: req.body.guest_home === '1',
     faqs: req.body.guest_faqs === '1',
     files: req.body.guest_files === '1',
+  });
+  logAudit(req, {
+    action: 'settings.guest_modules',
+    entityType: 'settings',
+    detail: getGuestModules(),
   });
   res.redirect('/settings?saved=1');
 });

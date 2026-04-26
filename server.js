@@ -60,6 +60,8 @@ app.use('/auth', require('./routes/auth'));
 
 app.use('/settings', require('./routes/settings'));
 
+app.use('/stats', require('./routes/stats'));
+
 app.use('/chat', require('./routes/chat'));
 
 // Admin-only routes

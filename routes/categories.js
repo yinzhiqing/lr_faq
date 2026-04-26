@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const db = require('../db/database');
+const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
 
@@ -32,9 +33,15 @@ router.get('/', (req, res) => {
 
 router.post('/', (req, res) => {
   const { name, parent_id, product_id, description } = req.body;
-  db.prepare('INSERT INTO categories (name, parent_id, product_id, description) VALUES (?, ?, ?, ?)').run(
-    name, parent_id || null, product_id || null, description || ''
-  );
+  const r = db
+    .prepare('INSERT INTO categories (name, parent_id, product_id, description) VALUES (?, ?, ?, ?)')
+    .run(name, parent_id || null, product_id || null, description || '');
+  logAudit(req, {
+    action: 'category.create',
+    entityType: 'category',
+    entityId: r.lastInsertRowid,
+    detail: { name },
+  });
   res.redirect('/categories');
 });
 
@@ -56,13 +63,27 @@ router.post('/:id/edit', (req, res) => {
   db.prepare('UPDATE categories SET name=?, parent_id=?, product_id=?, description=? WHERE id=?').run(
     name, parent_id || null, product_id || null, description || '', req.params.id
   );
+  logAudit(req, {
+    action: 'category.update',
+    entityType: 'category',
+    entityId: Number(req.params.id),
+    detail: { name },
+  });
   res.redirect('/categories');
 });
 
 router.post('/:id/delete', (req, res) => {
+  const row = db.prepare('SELECT id, name FROM categories WHERE id = ?').get(req.params.id);
+  if (!row) return res.redirect('/categories');
   db.prepare('UPDATE faqs SET category_id = NULL WHERE category_id = ?').run(req.params.id);
   db.prepare('UPDATE categories SET parent_id = NULL WHERE parent_id = ?').run(req.params.id);
   db.prepare('DELETE FROM categories WHERE id = ?').run(req.params.id);
+  logAudit(req, {
+    action: 'category.delete',
+    entityType: 'category',
+    entityId: row.id,
+    detail: { name: row.name },
+  });
   res.redirect('/categories');
 });
 

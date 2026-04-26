@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const db = require('../db/database');
+const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
 
@@ -19,7 +20,13 @@ router.post('/', (req, res) => {
   if (!name || !name.trim()) return res.redirect('/tags');
   const existing = db.prepare('SELECT id FROM tags WHERE name = ?').get(name.trim());
   if (!existing) {
-    db.prepare('INSERT INTO tags (name) VALUES (?)').run(name.trim());
+    const r = db.prepare('INSERT INTO tags (name) VALUES (?)').run(name.trim());
+    logAudit(req, {
+      action: 'tag.create',
+      entityType: 'tag',
+      entityId: r.lastInsertRowid,
+      detail: { name: name.trim() },
+    });
   }
   res.redirect('/tags');
 });
@@ -41,12 +48,26 @@ router.post('/:id/edit', (req, res) => {
   const { name } = req.body;
   if (name && name.trim()) {
     db.prepare('UPDATE tags SET name = ? WHERE id = ?').run(name.trim(), req.params.id);
+    logAudit(req, {
+      action: 'tag.update',
+      entityType: 'tag',
+      entityId: Number(req.params.id),
+      detail: { name: name.trim() },
+    });
   }
   res.redirect('/tags');
 });
 
 router.post('/:id/delete', (req, res) => {
+  const row = db.prepare('SELECT id, name FROM tags WHERE id = ?').get(req.params.id);
+  if (!row) return res.redirect('/tags');
   db.prepare('DELETE FROM tags WHERE id = ?').run(req.params.id);
+  logAudit(req, {
+    action: 'tag.delete',
+    entityType: 'tag',
+    entityId: row.id,
+    detail: { name: row.name },
+  });
   res.redirect('/tags');
 });
 

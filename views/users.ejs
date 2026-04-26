@@ -7,17 +7,21 @@
 <div class="two-col">
   <div class="card<%= current ? ' card-edit' : '' %>" id="user-form">
     <h2 class="section-heading section-heading--compact">
-      <%= current ? '编辑用户：' + current.username : '新建用户' %>
+      <%= current ? '编辑用户：' + (current.full_name && String(current.full_name).trim() ? String(current.full_name).trim() : current.username) : '新建用户' %>
     </h2>
     <% if (current) { %>
       <p class="caption mb-3">
-        角色: <%= current.role === 'admin' ? '管理员（含客服权限）' : current.role === 'support' ? '客服' : '普通用户' %> | 创建: <%= current.created_at %>
+        登录账号 <code><%= current.username %></code> · 角色: <%= current.role === 'admin' ? '管理员（含客服权限）' : current.role === 'support' ? '客服' : '普通用户' %> · 创建: <%= current.created_at %>
       </p>
     <% } %>
     <form action="<%= current ? `/users/${current.id}/edit` : '/users' %>" method="post">
       <div class="form-group">
-        <label>用户名 *</label>
-        <input type="text" name="username" value="<%= current ? current.username : '' %>" required>
+        <label>登录账号 *</label>
+        <input type="text" name="username" value="<%= current ? current.username : '' %>" required autocomplete="username" placeholder="用于登录，不可与他人重复">
+      </div>
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" name="full_name" value="<%= current && current.full_name ? current.full_name : '' %>" autocomplete="name" placeholder="真实姓名或显示名称">
       </div>
       <div class="form-group">
         <label>密码 <%= current ? '(留空则不修改)' : '*' %></label>
@@ -41,11 +45,14 @@
   <div class="card">
     <h2 class="section-heading">用户列表</h2>
     <table>
-      <thead><tr><th>用户名</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+      <thead><tr><th>姓名</th><th>登录账号</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
       <% users.forEach(u => { %>
         <tr class="<%= (current && current.id === u.id) ? 'row-highlight' : '' %>">
           <td>
-            <strong><%= u.username %></strong>
+            <strong><%= (u.full_name && String(u.full_name).trim()) ? String(u.full_name).trim() : '—' %></strong>
+          </td>
+          <td>
+            <code class="table-mono"><%= u.username %></code>
             <% if (u.username === 'admin') { %><span class="tag tag-inline">默认</span><% } %>
           </td>
           <td><span class="tag <%= u.role === 'admin' ? 'tag-primary' : u.role === 'support' ? 'tag-warn' : '' %>" title="<%= u.role === 'admin' ? '含客服接待权限' : '' %>"><%= u.role === 'admin' ? '管理员' : u.role === 'support' ? '客服' : '普通用户' %></span></td>

@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
+const { logAudit } = require('../lib/auditLog');
 const { processVideo } = require('../services/transcode');
 
 const router = Router();
@@ -98,6 +99,7 @@ router.post('/', requireAdmin, upload.array('files', 10), (req, res) => {
     }
   }
 
+  logAudit(req, { action: 'faq.create', entityType: 'faq', entityId: faqId, detail: { title } });
   res.redirect(`/faqs/${faqId}`);
 });
 
@@ -130,6 +132,9 @@ router.get('/:id', (req, res) => {
     WHERE f.id = ?
   `).get(req.params.id);
   if (!faq) return res.status(404).send('FAQ 不存在');
+
+  db.prepare('UPDATE faqs SET view_count = view_count + 1 WHERE id = ?').run(faq.id);
+  faq.view_count = (faq.view_count || 0) + 1;
 
   faq.tags = db.prepare('SELECT t.* FROM tags t JOIN faq_tags ft ON t.id = ft.tag_id WHERE ft.faq_id = ?').all(faq.id);
   faq.files = db.prepare('SELECT * FROM files WHERE faq_id = ? ORDER BY created_at DESC').all(faq.id);
@@ -178,11 +183,19 @@ router.post('/:id/edit', requireAdmin, upload.array('files', 10), (req, res) => 
     }
   }
 
+  logAudit(req, {
+    action: 'faq.update',
+    entityType: 'faq',
+    entityId: Number(req.params.id),
+    detail: { title },
+  });
   res.redirect(`/faqs/${req.params.id}`);
 });
 
 // Delete FAQ
 router.post('/:id/delete', requireAdmin, (req, res) => {
+  const faqRow = db.prepare('SELECT id, title FROM faqs WHERE id = ?').get(req.params.id);
+  if (!faqRow) return res.status(404).send('FAQ 不存在');
   // Clean up files on disk
   const files = db.prepare('SELECT filename FROM files WHERE faq_id = ?').all(req.params.id);
   for (const f of files) {
@@ -190,6 +203,12 @@ router.post('/:id/delete', requireAdmin, (req, res) => {
     if (fs.existsSync(fp)) fs.unlinkSync(fp);
   }
   db.prepare('DELETE FROM faqs WHERE id = ?').run(req.params.id);
+  logAudit(req, {
+    action: 'faq.delete',
+    entityType: 'faq',
+    entityId: faqRow.id,
+    detail: { title: faqRow.title },
+  });
   res.redirect('/faqs');
 });
 

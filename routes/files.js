@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
 const { requireAdmin } = require('../middleware/auth');
+const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
 const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -29,6 +30,12 @@ router.post('/:id/delete', requireAdmin, (req, res) => {
   const filePath = path.join(uploadDir, file.filename);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   db.prepare('DELETE FROM files WHERE id = ?').run(req.params.id);
+  logAudit(req, {
+    action: 'file.delete',
+    entityType: 'file',
+    entityId: file.id,
+    detail: { original_name: file.original_name, faq_id: file.faq_id },
+  });
   res.redirect(`/faqs/${file.faq_id}`);
 });
 

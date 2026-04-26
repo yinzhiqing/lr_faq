@@ -1,0 +1,125 @@
+<div class="page-header">
+  <h1>统计与操作日志</h1>
+  <p class="caption">汇总知识库访问量与后台操作记录，仅管理员可见。</p>
+</div>
+
+<% var actionLabels = {
+  'auth.login': '登录',
+  'auth.login_failed': '登录失败',
+  'auth.logout': '退出',
+  'auth.password_change': '修改密码',
+  'faq.create': '新建问题',
+  'faq.update': '编辑问题',
+  'faq.delete': '删除问题',
+  'product.create': '新建产品',
+  'product.update': '编辑产品',
+  'product.delete': '删除产品',
+  'category.create': '新建分类',
+  'category.update': '编辑分类',
+  'category.delete': '删除分类',
+  'tag.create': '新建标签',
+  'tag.update': '编辑标签',
+  'tag.delete': '删除标签',
+  'user.create': '新建用户',
+  'user.update': '编辑用户',
+  'user.delete': '删除用户',
+  'file.delete': '删除附件',
+  'settings.guest_modules': '访客模块设置',
+}; %>
+
+<div class="stats-kpi-row">
+  <div class="card stats-kpi">
+    <p class="stats-kpi__label">累计问题浏览</p>
+    <p class="stats-kpi__value"><%= totalViews %></p>
+    <p class="caption">所有问题详情页浏览次数之和</p>
+  </div>
+  <div class="card stats-kpi">
+    <p class="stats-kpi__label">问题条数</p>
+    <p class="stats-kpi__value"><%= faqCount %></p>
+  </div>
+  <div class="card stats-kpi">
+    <p class="stats-kpi__label">近 24 小时操作</p>
+    <p class="stats-kpi__value"><%= logs24h %></p>
+    <p class="caption">审计日志条数</p>
+  </div>
+  <div class="card stats-kpi">
+    <p class="stats-kpi__label">日志总条数</p>
+    <p class="stats-kpi__value"><%= logTotal %></p>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="section-heading section-heading--compact">访问量排行（Top 25）</h2>
+  <% if (topFaqs.length === 0) { %>
+    <p class="text-tertiary">暂无问题。</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>浏览次数</th>
+            <th>标题</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% topFaqs.forEach(function (f) { %>
+            <tr>
+              <td class="td-muted stats-table__num"><%= f.view_count %></td>
+              <td><a href="/faqs/<%= f.id %>"><%= f.title %></a></td>
+              <td class="td-muted stats-table__id">#<%= f.id %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2 class="section-heading section-heading--compact">操作日志</h2>
+  <% if (logs.length === 0) { %>
+    <p class="text-tertiary">尚无操作记录。</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="stats-table stats-table--audit">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>操作</th>
+            <th>对象</th>
+            <th>用户</th>
+            <th>IP</th>
+            <th>详情</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(function (log) { %>
+            <tr>
+              <td class="td-muted stats-table__time"><%= log.created_at %></td>
+              <td><span class="tag"><%= actionLabels[log.action] || log.action %></span></td>
+              <td class="td-muted">
+                <% if (log.entity_type && log.entity_id != null) { %>
+                  <%= log.entity_type %> #<%= log.entity_id %>
+                <% } else { %>—<% } %>
+              </td>
+              <td><%= log.username || '—' %></td>
+              <td class="td-muted stats-table__ip"><%= log.ip || '—' %></td>
+              <td class="stats-table__detail"><%= log.detail || '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <div class="chat-history-pager btn-group">
+    <% if (page > 1) { %>
+      <a class="btn btn-outline btn-sm" href="/stats?page=<%= page - 1 %>">上一页</a>
+    <% } %>
+    <span class="caption chat-history-pager__meta">第 <%= page %> / <%= totalPages %> 页 · 共 <%= logTotal %> 条 · 每页 <%= perPage %> 条</span>
+    <% if (page < totalPages) { %>
+      <a class="btn btn-outline btn-sm" href="/stats?page=<%= page + 1 %>">下一页</a>
+    <% } %>
+  </div>
+</div>

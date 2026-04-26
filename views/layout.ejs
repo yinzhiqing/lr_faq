@@ -25,45 +25,109 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="nav-collapsible" id="nav-collapsible">
+        <% var _moreAdmin = locals.currentUser && currentUser.role === 'admin'; %>
+        <% var _moreStaff = locals.currentUser && (currentUser.role === 'admin' || currentUser.role === 'support'); %>
         <div class="nav-links">
           <% if (locals.currentUser || gm.faqs) { %>
             <a href="/faqs">全部问题</a>
           <% } %>
-          <% if (locals.currentUser) { %>
-            <% if (currentUser.role === 'admin' || currentUser.role === 'support') { %>
-              <a href="/chat/history">聊天记录</a>
-            <% } %>
-            <% if (currentUser.role === 'admin') { %>
-              <a href="/faqs/new">添加问题</a>
-              <a href="/products">产品</a>
-              <a href="/categories">分类</a>
-              <a href="/tags">标签</a>
-              <a href="/users">用户</a>
-              <a href="/settings">系统设置</a>
-            <% } %>
+          <% if (locals.currentUser && currentUser.role === 'admin') { %>
+            <a href="/faqs/new">添加问题</a>
+            <a href="/products">产品</a>
+            <a href="/categories">分类</a>
+            <a href="/tags">标签</a>
           <% } %>
         </div>
-        <% if (locals.currentUser || gm.faqs) { %>
-        <div class="nav-search">
-          <form action="/faqs" method="get" class="nav-search-form">
-            <input type="text" name="q" placeholder="搜索…" aria-label="搜索">
-            <button type="submit" class="btn btn-icon btn-ghost btn-sm" title="搜索" aria-label="搜索">
-              <svg class="btn-icon__svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M20 20l-4.2-4.2"/></svg>
+        <div class="nav-actions">
+          <% if (locals.currentUser || gm.faqs) { %>
+          <div class="nav-search">
+            <form action="/faqs" method="get" class="nav-search-form">
+              <input type="text" name="q" placeholder="搜索…" aria-label="搜索">
+              <button type="submit" class="btn btn-icon btn-ghost btn-sm" title="搜索" aria-label="搜索">
+                <svg class="btn-icon__svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M20 20l-4.2-4.2"/></svg>
+              </button>
+            </form>
+          </div>
+          <% } %>
+          <% if (!locals.currentUser) { %>
+          <div class="nav-user">
+            <button type="button" class="btn btn-icon btn-ghost btn-sm theme-toggle" id="theme-toggle" aria-label="切换到深色模式" title="深色模式">
+              <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>
+              <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
             </button>
-          </form>
-        </div>
-        <% } %>
-        <div class="nav-user">
-          <button type="button" class="btn btn-icon btn-ghost btn-sm theme-toggle" id="theme-toggle" aria-label="切换到深色模式" title="深色模式">
-            <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>
-            <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-          </button>
-          <% if (locals.currentUser) { %>
-            <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员（含客服）' : currentUser.role === 'support' ? '客服' : '用户' %></span>
-            <span class="nav-username"><%= currentUser.username %></span>
-            <a href="/auth/logout" class="nav-logout">退出</a>
-          <% } else { %>
             <a href="/auth/login" class="btn btn-primary btn-sm nav-login-btn">登录</a>
+          </div>
+          <% } %>
+          <% if (locals.currentUser) { %>
+          <% var _roleLabel = currentUser.role === 'admin' ? '管理员（含客服）' : currentUser.role === 'support' ? '客服' : '用户'; %>
+          <% var _fn = (currentUser.full_name && String(currentUser.full_name).trim()) ? String(currentUser.full_name).trim() : ''; %>
+          <% var _panelTitle = _fn || currentUser.username; %>
+          <% var _rawAvatar = (_fn || currentUser.username || '').trim(); %>
+          <% var _avatarPlaceholder = !_rawAvatar.length; %>
+          <% var _avatarChar = _avatarPlaceholder ? '' : _rawAvatar.charAt(0).toUpperCase(); %>
+          <div class="nav-dropdown" id="nav-account" data-nav-dropdown>
+            <button type="button" class="nav-account__chip nav-account__chip--icon-only" id="nav-account-btn" aria-expanded="false" aria-haspopup="true" aria-controls="nav-account-menu" aria-label="账户菜单：<%= _panelTitle %>" title="<%= _fn ? (_fn + ' · ') : '' %>登录账号 <%= currentUser.username %>">
+              <span class="nav-account__avatar<%= _avatarPlaceholder ? ' nav-account__avatar--placeholder' : '' %>" aria-hidden="true">
+                <% if (_avatarPlaceholder) { %>
+                <svg class="nav-account__avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path stroke-linecap="round" d="M5 20.5c0-3.8 3.1-7 7-7s7 3.2 7 7"/></svg>
+                <% } else { %><%= _avatarChar %><% } %>
+              </span>
+            </button>
+            <div class="nav-dropdown__panel nav-menu-chrome nav-account__panel" id="nav-account-menu" role="menu" hidden>
+              <div class="nav-account__panel-head">
+                <span class="nav-account__avatar nav-account__avatar--lg<%= _avatarPlaceholder ? ' nav-account__avatar--placeholder' : '' %>" aria-hidden="true">
+                  <% if (_avatarPlaceholder) { %>
+                  <svg class="nav-account__avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path stroke-linecap="round" d="M5 20.5c0-3.8 3.1-7 7-7s7 3.2 7 7"/></svg>
+                  <% } else { %><%= _avatarChar %><% } %>
+                </span>
+                <div class="nav-account__panel-meta">
+                  <span class="nav-menu-account__name"><%= _panelTitle %></span>
+                  <% if (_fn) { %>
+                  <span class="nav-account__login-hint">登录账号 <code class="nav-account__code"><%= currentUser.username %></code></span>
+                  <% } %>
+                  <span class="nav-menu-account__role"><%= _roleLabel %></span>
+                </div>
+              </div>
+              <div class="nav-menu-sep" role="separator"></div>
+              <a href="/auth/change-password" class="nav-menu-item" role="menuitem">修改密码</a>
+              <a href="/auth/logout" class="nav-menu-item" role="menuitem">退出登录</a>
+            </div>
+          </div>
+          <div class="nav-dropdown nav-dropdown--end" id="nav-more" data-nav-dropdown>
+            <button type="button" class="nav-dropdown__btn nav-more-trigger" id="nav-more-btn" aria-expanded="false" aria-haspopup="true" aria-controls="nav-more-menu" aria-label="更多选项" title="更多选项">
+              <svg class="nav-more-kebab" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
+                <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+              </svg>
+            </button>
+            <div class="nav-dropdown__panel nav-menu-chrome" id="nav-more-menu" role="menu" hidden>
+              <% if (_moreStaff) { %>
+              <div class="nav-menu-section" role="group" aria-label="沟通与记录">
+                <div class="nav-menu-section__label">沟通与记录</div>
+                <a href="/chat/history" class="nav-menu-item" role="menuitem">聊天记录</a>
+              </div>
+              <% } %>
+              <% if (_moreAdmin) { %>
+              <% if (_moreStaff) { %><div class="nav-menu-sep" role="separator"></div><% } %>
+              <div class="nav-menu-section" role="group" aria-label="管理">
+                <div class="nav-menu-section__label">管理</div>
+                <a href="/users" class="nav-menu-item" role="menuitem">用户</a>
+                <a href="/settings" class="nav-menu-item" role="menuitem">系统设置</a>
+                <a href="/stats" class="nav-menu-item" role="menuitem">统计</a>
+              </div>
+              <% } %>
+              <% if (_moreStaff || _moreAdmin) { %><div class="nav-menu-sep" role="separator"></div><% } %>
+              <div class="nav-menu-section" role="group" aria-label="外观">
+                <div class="nav-menu-section__label">外观</div>
+                <button type="button" class="nav-menu-item nav-menu-item--theme theme-toggle" id="theme-toggle" aria-label="切换到深色模式" title="深色模式">
+                  <span class="nav-menu-item__leading">主题</span>
+                  <span class="nav-menu-item__trailing" aria-hidden="true">
+                    <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>
+                    <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
           <% } %>
         </div>
       </div>
@@ -78,11 +142,74 @@
     var btn = document.getElementById('nav-toggle');
     var panel = document.getElementById('nav-collapsible');
     if (!btn || !nav || !panel) return;
+    function closeNavMore() {
+      var wrap = document.getElementById('nav-more');
+      var mb = document.getElementById('nav-more-btn');
+      var menu = document.getElementById('nav-more-menu');
+      if (!wrap || !mb || !menu) return;
+      wrap.classList.remove('nav-dropdown--open');
+      mb.setAttribute('aria-expanded', 'false');
+      menu.hidden = true;
+    }
+    function closeNavAccount() {
+      var wrap = document.getElementById('nav-account');
+      var mb = document.getElementById('nav-account-btn');
+      var menu = document.getElementById('nav-account-menu');
+      if (!wrap || !mb || !menu) return;
+      wrap.classList.remove('nav-dropdown--open');
+      mb.setAttribute('aria-expanded', 'false');
+      menu.hidden = true;
+    }
+    function closeAllNavFlyouts() {
+      closeNavMore();
+      closeNavAccount();
+    }
     btn.addEventListener('click', function () {
       var open = !nav.classList.contains('navbar--open');
       nav.classList.toggle('navbar--open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       btn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+      if (!open) closeAllNavFlyouts();
+    });
+    var moreWrap = document.getElementById('nav-more');
+    var moreBtn = document.getElementById('nav-more-btn');
+    var moreMenu = document.getElementById('nav-more-menu');
+    if (moreWrap && moreBtn && moreMenu) {
+      moreBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeNavAccount();
+        var isOpen = !moreWrap.classList.contains('nav-dropdown--open');
+        moreWrap.classList.toggle('nav-dropdown--open', isOpen);
+        moreBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        moreMenu.hidden = !isOpen;
+      });
+      moreMenu.querySelectorAll('a[role="menuitem"]').forEach(function (a) {
+        a.addEventListener('click', closeNavMore);
+      });
+    }
+    var accWrap = document.getElementById('nav-account');
+    var accBtn = document.getElementById('nav-account-btn');
+    var accMenu = document.getElementById('nav-account-menu');
+    if (accWrap && accBtn && accMenu) {
+      accBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeNavMore();
+        var isOpen = !accWrap.classList.contains('nav-dropdown--open');
+        accWrap.classList.toggle('nav-dropdown--open', isOpen);
+        accBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        accMenu.hidden = !isOpen;
+      });
+      accMenu.querySelectorAll('a[role="menuitem"]').forEach(function (a) {
+        a.addEventListener('click', closeNavAccount);
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (moreWrap && moreWrap.contains(e.target)) return;
+      if (accWrap && accWrap.contains(e.target)) return;
+      closeAllNavFlyouts();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAllNavFlyouts();
     });
   })();
   function copyShareLink(faqId, btn) {

@@ -12,6 +12,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    full_name TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user', 'support')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -83,6 +84,12 @@ db.exec(`
   `);
 })();
 
+(function migrateUserFullName() {
+  const cols = db.prepare('PRAGMA table_info(users)').all();
+  if (cols.some((c) => c.name === 'full_name')) return;
+  db.exec(`ALTER TABLE users ADD COLUMN full_name TEXT NOT NULL DEFAULT ''`);
+})();
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS chat_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,13 +118,46 @@ db.exec(`
   }
 })();
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    action TEXT NOT NULL,
+    entity_type TEXT,
+    entity_id INTEGER,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    username TEXT,
+    ip TEXT,
+    detail TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+`);
+
+(function migrateFaqViewCount() {
+  const cols = db.prepare('PRAGMA table_info(faqs)').all();
+  if (!cols.some((c) => c.name === 'view_count')) {
+    db.exec('ALTER TABLE faqs ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0');
+  }
+})();
+
 // Seed admin user
 const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get();
 if (userCount.c === 0) {
   const bcrypt = require('bcryptjs');
   const hash = bcrypt.hashSync('admin123', 10);
-  db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)').run('admin', hash, 'admin');
-  db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)').run('user1', bcrypt.hashSync('user123', 10), 'user');
+  db.prepare('INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)').run(
+    'admin',
+    hash,
+    'admin',
+    '系统管理员'
+  );
+  db.prepare('INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)').run(
+    'user1',
+    bcrypt.hashSync('user123', 10),
+    'user',
+    '示例用户'
+  );
 }
 
 // Seed other data

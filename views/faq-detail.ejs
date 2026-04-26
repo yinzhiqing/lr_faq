@@ -12,6 +12,7 @@
         产品: <% if (faq.product_name) { %><a href="/faqs?product=<%= faq.product_id %>" class="badge badge-product"><%= faq.product_name %></a><% } else { %>未分类<% } %>
         &nbsp;|&nbsp; 分类: <a href="/faqs?category=<%= faq.category_id %>"><%= faq.category_name || '未分类' %></a>
         &nbsp;|&nbsp; 更新: <%= faq.updated_at %>
+        &nbsp;|&nbsp; 浏览 <%= typeof faq.view_count === 'number' ? faq.view_count : 0 %> 次
       </p>
     </div>
     <div class="btn-group">
