@@ -1,0 +1,63 @@
+<div class="page-header">
+  <h1>聊天记录</h1>
+  <p class="caption">来源数据库全表，按消息 id 倒序。仅管理员与客服可访问；在线窗口仍只加载最近若干条。</p>
+</div>
+
+<div class="card">
+  <form class="chat-history-search" method="get" action="/chat/history">
+    <div class="form-group chat-history-search__field">
+      <input id="chat-history-q" type="search" name="q" value="<%= query.q %>" placeholder="按账号或消息内容搜索…" autocomplete="off" aria-label="搜索账号或消息内容">
+    </div>
+    <div class="btn-group">
+      <button type="submit" class="btn btn-primary btn-sm">搜索</button>
+      <% if (query.q) { %>
+        <a href="/chat/history" class="btn btn-outline btn-sm">清除条件</a>
+      <% } %>
+    </div>
+  </form>
+
+  <% const qparam = query.q ? ('&q=' + encodeURIComponent(query.q)) : ''; %>
+
+  <% if (rows.length === 0) { %>
+    <p class="text-tertiary">暂无记录。</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="chat-history-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>类型</th>
+            <th>用户 id</th>
+            <th>账号</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(function (r) { %>
+            <tr>
+              <td class="td-muted chat-history__time"><%= r.created_at %></td>
+              <td>
+                <span class="tag <%= r.kind === 'staff' ? 'tag-primary' : r.kind === 'customer' ? '' : 'tag-warn' %>">
+                  <%= r.kind === 'staff' ? '客服' : r.kind === 'customer' ? '用户' : '访客(历史)' %>
+                </span>
+              </td>
+              <td class="td-muted"><%= r.user_id != null ? r.user_id : '—' %></td>
+              <td><strong><%= r.username %></strong></td>
+              <td class="chat-history__text"><%= r.text %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <div class="chat-history-pager btn-group">
+    <% if (page > 1) { %>
+      <a class="btn btn-outline btn-sm" href="/chat/history?page=<%= page - 1 %><%= qparam %>">上一页</a>
+    <% } %>
+    <span class="caption chat-history-pager__meta">第 <%= page %> / <%= totalPages %> 页 · 共 <%= total %> 条 · 每页 <%= perPage %> 条</span>
+    <% if (page < totalPages) { %>
+      <a class="btn btn-outline btn-sm" href="/chat/history?page=<%= page + 1 %><%= qparam %>">下一页</a>
+    <% } %>
+  </div>
+</div>

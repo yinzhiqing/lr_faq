@@ -11,7 +11,7 @@
     </h2>
     <% if (current) { %>
       <p class="caption mb-3">
-        角色: <%= current.role === 'admin' ? '管理员' : '普通用户' %> | 创建: <%= current.created_at %>
+        角色: <%= current.role === 'admin' ? '管理员（含客服权限）' : current.role === 'support' ? '客服' : '普通用户' %> | 创建: <%= current.created_at %>
       </p>
     <% } %>
     <form action="<%= current ? `/users/${current.id}/edit` : '/users' %>" method="post">
@@ -27,7 +27,8 @@
         <label>角色</label>
         <select name="role">
           <option value="user" <%= (current && current.role === 'user') ? 'selected' : '' %>>普通用户 (user)</option>
-          <option value="admin" <%= (current && current.role === 'admin') ? 'selected' : '' %>>管理员 (admin)</option>
+          <option value="support" <%= (current && current.role === 'support') ? 'selected' : '' %>>客服 (support)</option>
+          <option value="admin" <%= (current && current.role === 'admin') ? 'selected' : '' %>>管理员 (admin，含客服权限)</option>
         </select>
       </div>
       <div class="btn-group">
@@ -47,7 +48,7 @@
             <strong><%= u.username %></strong>
             <% if (u.username === 'admin') { %><span class="tag tag-inline">默认</span><% } %>
           </td>
-          <td><span class="tag <%= u.role === 'admin' ? 'tag-primary' : '' %>"><%= u.role === 'admin' ? '管理员' : '普通用户' %></span></td>
+          <td><span class="tag <%= u.role === 'admin' ? 'tag-primary' : u.role === 'support' ? 'tag-warn' : '' %>" title="<%= u.role === 'admin' ? '含客服接待权限' : '' %>"><%= u.role === 'admin' ? '管理员' : u.role === 'support' ? '客服' : '普通用户' %></span></td>
           <td class="td-muted"><%= u.created_at %></td>
           <td>
             <div class="btn-group">

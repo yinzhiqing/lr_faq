@@ -1,22 +1,27 @@
+const http = require('http');
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const ejsLayouts = require('express-ejs-layouts');
 const { exposeUser, requireAdmin } = require('./middleware/auth');
+const { attachLiveChat } = require('./lib/liveChat');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// Session
-app.use(session({
+const sessionMiddleware = session({
   secret: 'faq-kb-secret-' + Math.random().toString(36),
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }
-}));
+  cookie: { maxAge: 24 * 60 * 60 * 1000 },
+});
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(sessionMiddleware);
+
+attachLiveChat(server, sessionMiddleware);
 
 // Expose user to all views
 app.use(exposeUser);
@@ -53,6 +58,8 @@ app.get('/', (req, res) => {
 
 app.use('/auth', require('./routes/auth'));
 
+app.use('/chat', require('./routes/chat'));
+
 // Admin-only routes
 app.use('/products', requireAdmin, require('./routes/products'));
 app.use('/categories', requireAdmin, require('./routes/categories'));
@@ -67,6 +74,6 @@ app.use('/faqs', require('./routes/faqs'));
 // File routes (download is public, delete is protected inside)
 app.use('/files', require('./routes/files'));
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`产品知识库已启动: http://localhost:${PORT}`);
 });

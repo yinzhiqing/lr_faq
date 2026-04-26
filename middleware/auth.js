@@ -10,6 +10,18 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function requireAdminOrSupport(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect('/auth/login?return=' + encodeURIComponent(req.originalUrl));
+  }
+  const role = req.session.user.role;
+  if (role !== 'admin' && role !== 'support') {
+    return res.status(403).render('403', { title: '无权限' });
+  }
+  res.locals.currentUser = req.session.user;
+  next();
+}
+
 // Require login (any role)
 function requireLogin(req, res, next) {
   if (!req.session.user) {
@@ -25,4 +37,4 @@ function exposeUser(req, res, next) {
   next();
 }
 
-module.exports = { requireAdmin, requireLogin, exposeUser };
+module.exports = { requireAdmin, requireAdminOrSupport, requireLogin, exposeUser };

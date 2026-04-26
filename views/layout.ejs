@@ -27,8 +27,11 @@
         <div class="nav-links">
           <a href="/faqs">全部问题</a>
           <% if (locals.currentUser) { %>
-            <a href="/faqs/new">添加问题</a>
+            <% if (currentUser.role === 'admin' || currentUser.role === 'support') { %>
+              <a href="/chat/history">聊天记录</a>
+            <% } %>
             <% if (currentUser.role === 'admin') { %>
+              <a href="/faqs/new">添加问题</a>
               <a href="/products">产品</a>
               <a href="/categories">分类</a>
               <a href="/tags">标签</a>
@@ -50,7 +53,7 @@
             <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
           </button>
           <% if (locals.currentUser) { %>
-            <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
+            <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员（含客服）' : currentUser.role === 'support' ? '客服' : '用户' %></span>
             <span class="nav-username"><%= currentUser.username %></span>
             <a href="/auth/logout" class="nav-logout">退出</a>
           <% } else { %>
@@ -121,5 +124,13 @@
     syncThemeToggle();
   })();
   </script>
+  <% if (locals.currentUser) { %>
+  <script>
+  window.__LIVE_CHAT_SESSION_USER__ = <%- JSON.stringify(currentUser.username) %>;
+  window.__LIVE_CHAT_USER_ID__ = <%- currentUser.id %>;
+  window.__LIVE_CHAT_UI_ROLE__ = <%- JSON.stringify((currentUser.role === 'admin' || currentUser.role === 'support') ? 'staff' : 'customer') %>;
+  </script>
+  <script src="/live-chat.js" defer></script>
+  <% } %>
 </body>
 </html>

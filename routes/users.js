@@ -6,6 +6,12 @@ const { requireAdmin } = require('../middleware/auth');
 const router = Router();
 router.use(requireAdmin);
 
+const ROLES = new Set(['admin', 'user', 'support']);
+
+function normalizeRole(role) {
+  return ROLES.has(role) ? role : 'user';
+}
+
 router.get('/', (req, res) => {
   const users = db.prepare('SELECT id, username, role, created_at FROM users ORDER BY id').all();
   res.render('users', { users, current: null, error: null });
@@ -23,7 +29,11 @@ router.post('/', (req, res) => {
     return res.render('users', { users, current: null, error: '用户名已存在' });
   }
   const hash = bcrypt.hashSync(password, 10);
-  db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)').run(username.trim(), hash, role || 'user');
+  db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)').run(
+    username.trim(),
+    hash,
+    normalizeRole(role)
+  );
   res.redirect('/users');
 });
 
@@ -39,14 +49,15 @@ router.post('/:id/edit', (req, res) => {
   const current = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!current) return res.status(404).send('用户不存在');
 
+  const r = normalizeRole(role);
   if (password) {
     const hash = bcrypt.hashSync(password, 10);
     db.prepare('UPDATE users SET username = ?, password = ?, role = ? WHERE id = ?').run(
-      username.trim(), hash, role, req.params.id
+      username.trim(), hash, r, req.params.id
     );
   } else {
     db.prepare('UPDATE users SET username = ?, role = ? WHERE id = ?').run(
-      username.trim(), role, req.params.id
+      username.trim(), r, req.params.id
     );
   }
   res.redirect('/users');

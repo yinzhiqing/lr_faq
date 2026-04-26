@@ -12,7 +12,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user')),
+    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user', 'support')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -62,6 +62,34 @@ db.exec(`
     mime_type TEXT DEFAULT '',
     size INTEGER NOT NULL DEFAULT 0,
     faq_id INTEGER NOT NULL REFERENCES faqs(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+(function migrateUsersRoleSupport() {
+  const row = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get();
+  if (!row || !row.sql || row.sql.includes('support')) return;
+  db.exec(`
+    CREATE TABLE users_migrate_support (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin', 'user', 'support')),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    INSERT INTO users_migrate_support SELECT * FROM users;
+    DROP TABLE users;
+    ALTER TABLE users_migrate_support RENAME TO users;
+  `);
+})();
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL CHECK(kind IN ('staff', 'customer', 'guest')),
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    username TEXT NOT NULL,
+    text TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
