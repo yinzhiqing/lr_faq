@@ -1898,6 +1898,36 @@ body.live-chat-no-scroll {
 }
 .live-chat__fs-icon { width: 18px; height: 18px; }
 
+.live-chat__mute {
+  margin-left: 2px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.live-chat__mute:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+.live-chat__mute--muted {
+  color: var(--text-quaternary);
+}
+.live-chat__mute--muted:hover {
+  color: var(--text-secondary);
+}
+.live-chat__mute-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .live-chat__close {
   margin-left: 2px;
   width: 32px;

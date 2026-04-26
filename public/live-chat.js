@@ -60,6 +60,22 @@
         '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75H18m0 0h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25H18m0 0h-4.5m4.5 0v-4.5m0 4.5L15 15M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15"/>' +
         '</svg></button>'
       : '';
+  var muteIconOn =
+    '<svg class="live-chat__mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M11 4.702a.705.705 0 0 0-1.211-.498l-4.579 3.117A2.5 2.5 0 0 0 4 9.117V14.88a2.5 2.5 0 0 0 1.21 2.201l4.579 3.116A.705.705 0 0 0 11 19.298V4.702z"/>' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M16 9a5 5 0 0 1 0 6"/>' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M19.364 5.636a9 9 0 0 1 0 12.728"/>' +
+    '</svg>';
+  var muteIconOff =
+    '<svg class="live-chat__mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M11 4.702a.705.705 0 0 0-1.211-.498l-4.579 3.117A2.5 2.5 0 0 0 4 9.117v6.762a2.5 2.5 0 0 0 1.21 2.201l4.579 3.116A.705.705 0 0 0 11 19.298V4.702z"/>' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="m22 9-6 6"/>' +
+    '<path stroke-linecap="round" stroke-linejoin="round" d="m16 9 6 6"/>' +
+    '</svg>';
+  var headerMuteBtn =
+    '<button type="button" class="live-chat__mute" id="live-chat-mute" aria-pressed="false" aria-label="新消息提示音已开启，点击静音" title="新消息提示音">' +
+    muteIconOn +
+    '</button>';
   var staffLayoutOpen =
     UI_ROLE === 'staff'
       ? '<div class="live-chat__body"><aside class="live-chat__sessions" id="live-chat-sessions"><div class="live-chat__sessions-head">会话</div><div class="live-chat__sessions-list" id="live-chat-sessions-list" role="list"></div></aside><div class="live-chat__thread">'
@@ -93,6 +109,7 @@
     '<span class="live-chat__account" id="live-chat-account" title="当前登录账号"></span></div>' +
     '<span class="live-chat__status" id="live-chat-status">连接中…</span>' +
     staffFsBtn +
+    headerMuteBtn +
     '<button type="button" class="live-chat__close" id="live-chat-close" aria-label="关闭">×</button></div>' +
     staffLayoutOpen +
     '<div class="live-chat__hint" id="live-chat-hint"></div>' +
@@ -113,16 +130,25 @@
   if (accountEl) accountEl.textContent = SESSION_USER;
   if (UI_ROLE === 'staff') {
     hintEl.textContent =
-      '左侧选择客户会话后查看历史并回复；新消息按会话隔离。可全屏（Esc 退出）、引用知识库。';
+      '左侧选择客户会话后查看历史并回复；新消息按会话隔离。可全屏（Esc 退出）、引用知识库。标题栏喇叭可开关新消息提示音；非当前会话或收起窗口时若有提示音，需先点开过一次聊天以允许浏览器发声。';
   } else {
     hintEl.textContent =
-      '您与全体客服对应对话在本会话内；其他用户有独立会话，不会看到彼此内容。聊天记录页含本会话内客服回复。';
+      '您与全体客服对应对话在本会话内；其他用户有独立会话，不会看到彼此内容。聊天记录页含本会话内客服回复。标题栏喇叭可开关新消息提示音；窗口收起或切到后台时，若有提示音需先点开过一次聊天以允许浏览器发声。';
   }
 
   var fab = document.getElementById('live-chat-fab');
   var panel = document.getElementById('live-chat-panel');
   if (UI_ROLE === 'staff') {
     panel.classList.add('live-chat__panel--staff');
+  }
+  muteBtnEl = document.getElementById('live-chat-mute');
+  if (muteBtnEl) {
+    syncMuteButtonUI();
+    muteBtnEl.addEventListener('click', function (e) {
+      e.stopPropagation();
+      primeNotifyAudioFromUserGesture();
+      setChatNotifySoundMuted(!isChatNotifySoundMuted());
+    });
   }
   var closeBtn = document.getElementById('live-chat-close');
   var statusEl = document.getElementById('live-chat-status');
@@ -141,6 +167,39 @@
   var unreadCount = 0;
   var baseTitle = document.title;
   var badgeEl = document.getElementById('live-chat-badge');
+  var muteBtnEl = null;
+
+  function isChatNotifySoundMuted() {
+    try {
+      return window.localStorage && localStorage.getItem('live_chat_sound') === '0';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function syncMuteButtonUI() {
+    if (!muteBtnEl) return;
+    var muted = isChatNotifySoundMuted();
+    muteBtnEl.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    muteBtnEl.setAttribute(
+      'aria-label',
+      muted ? '新消息提示音已静音，点击开启' : '新消息提示音已开启，点击静音'
+    );
+    muteBtnEl.setAttribute('title', muted ? '提示音：关（点击开启）' : '提示音：开（点击静音）');
+    muteBtnEl.classList.toggle('live-chat__mute--muted', muted);
+    muteBtnEl.innerHTML = muted ? muteIconOff : muteIconOn;
+  }
+
+  function setChatNotifySoundMuted(muted) {
+    try {
+      if (muted) {
+        localStorage.setItem('live_chat_sound', '0');
+      } else {
+        localStorage.removeItem('live_chat_sound');
+      }
+    } catch (e) {}
+    syncMuteButtonUI();
+  }
 
   function updateBadge() {
     if (!badgeEl) return;
@@ -256,6 +315,63 @@
     } catch (e) {}
   }
 
+  var notifyAudioCtx = null;
+
+  function ensureNotifyAudioContext() {
+    if (notifyAudioCtx) return notifyAudioCtx;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      notifyAudioCtx = new AC();
+      return notifyAudioCtx;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** 解除浏览器「需用户手势才能发声」限制；在打开面板或点悬浮钮时调用 */
+  function primeNotifyAudioFromUserGesture() {
+    var ctx = ensureNotifyAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(function () {});
+    }
+  }
+
+  function playChatNotifySound() {
+    if (isChatNotifySoundMuted()) {
+      return;
+    }
+
+    function scheduleBeeps(ctx) {
+      var t0 = ctx.currentTime;
+      function one(freq, start, dur, peak) {
+        var osc = ctx.createOscillator();
+        var g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(peak, start + 0.018);
+        g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + dur + 0.025);
+      }
+      one(784, t0, 0.1, 0.1);
+      one(988, t0 + 0.11, 0.1, 0.08);
+    }
+
+    try {
+      var ctx = ensureNotifyAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume().then(function () { scheduleBeeps(ctx); }).catch(function () {});
+      } else {
+        scheduleBeeps(ctx);
+      }
+    } catch (e) {}
+  }
+
   function alertNewMessage(m) {
     if (isMine(m)) return;
     var panelOpen = !panel.hasAttribute('hidden');
@@ -276,6 +392,8 @@
       unreadCount++;
       updateBadge();
     }
+
+    playChatNotifySound();
 
     if (document.hidden && baseTitle && document.title.indexOf('【新消息】') !== 0) {
       document.title = '【新消息】' + baseTitle;
@@ -474,6 +592,7 @@
   function toggle(open) {
     var isOpen = open != null ? open : panel.hasAttribute('hidden');
     if (isOpen) {
+      primeNotifyAudioFromUserGesture();
       maybeAskNotificationPermission();
       if (UI_ROLE === 'staff') {
         if (activeSessionId) clearSessionUnreadFor(activeSessionId);
@@ -495,6 +614,7 @@
   }
 
   fab.addEventListener('click', function () {
+    primeNotifyAudioFromUserGesture();
     toggle();
   });
   closeBtn.addEventListener('click', function () {
