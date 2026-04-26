@@ -12,9 +12,25 @@
   var UI_ROLE = window.__LIVE_CHAT_UI_ROLE__ === 'staff' ? 'staff' : 'customer';
 
   function escapeHtml(s) {
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* 与 lib/linkifyChatText.js 保持一致 */
+  function linkifyChatText(text) {
+    if (text == null || text === '') return '';
+    var s = escapeHtml(String(text));
+    s = s.replace(/https?:\/\/[^\s<&]+/gi, function (full) {
+      var href = full.replace(/"/g, '%22');
+      return '<a class="chat-link" href="' + href + '" target="_blank" rel="noopener noreferrer">' + full + '</a>';
+    });
+    s = s.replace(/(^|[^\w/])(\/faqs\/\d+)\b/g, function (m, pre, path) {
+      return pre + '<a class="chat-link" href="' + path + '" target="_blank" rel="noopener noreferrer">' + path + '</a>';
+    });
+    return s;
   }
 
   function fmtTime(ts) {
@@ -37,6 +53,24 @@
   root.setAttribute('aria-live', 'polite');
   var panelTitle = UI_ROLE === 'staff' ? '客服工作台' : '在线客服';
   var fabTitle = UI_ROLE === 'staff' ? '客服工作台' : '在线客服';
+  var staffFsBtn =
+    UI_ROLE === 'staff'
+      ? '<button type="button" class="live-chat__fs" id="live-chat-fs" aria-label="全屏" title="全屏">' +
+        '<svg class="live-chat__fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75H18m0 0h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25H18m0 0h-4.5m4.5 0v-4.5m0 4.5L15 15M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15"/>' +
+        '</svg></button>'
+      : '';
+  var kbSection =
+    UI_ROLE === 'staff'
+      ? '<div class="live-chat__kb" id="live-chat-kb">' +
+        '<button type="button" class="live-chat__kb-toggle" id="live-chat-kb-toggle" aria-expanded="false" aria-controls="live-chat-kb-panel">' +
+        '引用知识库</button>' +
+        '<div class="live-chat__kb-panel" id="live-chat-kb-panel" hidden>' +
+        '<div class="live-chat__kb-search">' +
+        '<input type="search" id="live-chat-kb-q" class="live-chat__kb-input" placeholder="搜索标题、问题或答案…" maxlength="100" aria-label="搜索知识库">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="live-chat-kb-search">搜索</button></div>' +
+        '<div class="live-chat__kb-results" id="live-chat-kb-results" aria-live="polite"></div></div></div>'
+      : '';
   root.innerHTML =
     '<button type="button" class="live-chat__fab" id="live-chat-fab" aria-expanded="false" aria-controls="live-chat-panel" title="' +
     escapeHtml(fabTitle) +
@@ -47,25 +81,30 @@
     '</svg></button>' +
     '<div class="live-chat__panel" id="live-chat-panel" hidden>' +
     '<div class="live-chat__head">' +
+    '<div class="live-chat__title-wrap">' +
     '<span class="live-chat__title" id="live-chat-title"></span>' +
+    '<span class="live-chat__account-sep" aria-hidden="true">·</span>' +
+    '<span class="live-chat__account" id="live-chat-account" title="当前登录账号"></span></div>' +
     '<span class="live-chat__status" id="live-chat-status">连接中…</span>' +
+    staffFsBtn +
     '<button type="button" class="live-chat__close" id="live-chat-close" aria-label="关闭">×</button></div>' +
     '<div class="live-chat__hint" id="live-chat-hint"></div>' +
-    '<div class="live-chat__nick-row"><label class="live-chat__label" for="live-chat-nick">账号</label>' +
-    '<input type="text" id="live-chat-nick" class="live-chat__nick" maxlength="32" readonly autocomplete="username"></div>' +
+    kbSection +
     '<div class="live-chat__msgs" id="live-chat-msgs" role="log"></div>' +
     '<form class="live-chat__form" id="live-chat-form">' +
-    '<input type="text" id="live-chat-input" class="live-chat__input" maxlength="2000" placeholder="输入消息…" autocomplete="off" aria-label="消息内容">' +
+    '<textarea id="live-chat-input" class="live-chat__input live-chat__input--compose" rows="2" maxlength="2000" placeholder="输入消息…" autocomplete="off" aria-label="消息内容"></textarea>' +
     '<button type="submit" class="live-chat__send btn btn-primary btn-sm">发送</button></form></div>';
 
   document.body.appendChild(root);
 
   var titleEl = document.getElementById('live-chat-title');
+  var accountEl = document.getElementById('live-chat-account');
   var hintEl = document.getElementById('live-chat-hint');
   titleEl.textContent = panelTitle;
+  if (accountEl) accountEl.textContent = SESSION_USER;
   if (UI_ROLE === 'staff') {
     hintEl.textContent =
-      '客服工作台：管理员与客服账号均可在此接待用户；单房间多人可见，展示名为登录账号，记录已写入数据库。首次打开可授权桌面通知以便收新消息提示。';
+      '客服工作台：标题栏可全屏（Esc 退出）；可展开「引用知识库」插入 FAQ。管理员与客服均可接待；记录已写入数据库。';
   } else {
     hintEl.textContent =
       '单房间：所有登录用户可见相同记录，均以账号名显示。记录已落盘。可授权通知以接收新消息。';
@@ -78,10 +117,6 @@
   var msgsEl = document.getElementById('live-chat-msgs');
   var form = document.getElementById('live-chat-form');
   var input = document.getElementById('live-chat-input');
-  var nickInput = document.getElementById('live-chat-nick');
-
-  nickInput.value = SESSION_USER;
-  nickInput.title = '登录账号';
 
   var ws = null;
   var reconnectTimer = null;
@@ -170,7 +205,7 @@
 
     var bubble = document.createElement('div');
     bubble.className = 'live-chat__bubble';
-    bubble.textContent = m.text;
+    bubble.innerHTML = linkifyChatText(m.text);
     row.appendChild(meta);
     row.appendChild(bubble);
     msgsEl.appendChild(row);
@@ -258,6 +293,11 @@
     }, 2500);
   }
 
+  function exitChatFullscreen() {
+    root.classList.remove('live-chat--fullscreen');
+    document.body.classList.remove('live-chat-no-scroll');
+  }
+
   function toggle(open) {
     var isOpen = open != null ? open : panel.hasAttribute('hidden');
     if (isOpen) {
@@ -271,6 +311,7 @@
       fab.setAttribute('aria-expanded', 'true');
       input.focus();
     } else {
+      exitChatFullscreen();
       panel.setAttribute('hidden', '');
       fab.setAttribute('aria-expanded', 'false');
     }
@@ -283,6 +324,50 @@
     toggle(false);
   });
 
+  if (UI_ROLE === 'staff') {
+    var fsBtn = document.getElementById('live-chat-fs');
+    var fsIconExpand =
+      '<svg class="live-chat__fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">' +
+      '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75H18m0 0h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25H18m0 0h-4.5m4.5 0v-4.5m0 4.5L15 15M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15"/>' +
+      '</svg>';
+    var fsIconCollapse =
+      '<svg class="live-chat__fs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">' +
+      '<path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15h4.5M9 15l5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0 4.5l5.25 5.25"/>' +
+      '</svg>';
+
+    function syncFsIcon(isFs) {
+      if (!fsBtn) return;
+      fsBtn.innerHTML = isFs ? fsIconCollapse : fsIconExpand;
+      fsBtn.setAttribute('aria-label', isFs ? '退出全屏' : '全屏');
+      fsBtn.setAttribute('title', isFs ? '退出全屏' : '全屏');
+    }
+
+    fsBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isFs = root.classList.contains('live-chat--fullscreen');
+      if (!isFs) {
+        if (panel.hasAttribute('hidden')) {
+          toggle(true);
+        }
+        root.classList.add('live-chat--fullscreen');
+        document.body.classList.add('live-chat-no-scroll');
+        syncFsIcon(true);
+        scrollBottom();
+        input.focus();
+      } else {
+        exitChatFullscreen();
+        syncFsIcon(false);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!root.classList.contains('live-chat--fullscreen')) return;
+      exitChatFullscreen();
+      syncFsIcon(false);
+    });
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var text = input.value.trim();
@@ -290,6 +375,136 @@
     ws.send(JSON.stringify({ type: 'msg', text: text }));
     input.value = '';
   });
+
+  var MAX_MSG = 2000;
+
+  function appendToCompose(fragment) {
+    var el = input;
+    var v = el.value || '';
+    var start = typeof el.selectionStart === 'number' ? el.selectionStart : v.length;
+    var end = typeof el.selectionEnd === 'number' ? el.selectionEnd : v.length;
+    var next = v.slice(0, start) + fragment + v.slice(end);
+    if (next.length > MAX_MSG) {
+      next = next.slice(0, MAX_MSG);
+    }
+    el.value = next;
+    el.focus();
+    try {
+      var pos = Math.min(start + fragment.length, next.length);
+      el.setSelectionRange(pos, pos);
+    } catch (err) {}
+  }
+
+  if (UI_ROLE === 'staff') {
+    var kbToggle = document.getElementById('live-chat-kb-toggle');
+    var kbPanel = document.getElementById('live-chat-kb-panel');
+    var kbQ = document.getElementById('live-chat-kb-q');
+    var kbSearchBtn = document.getElementById('live-chat-kb-search');
+    var kbResults = document.getElementById('live-chat-kb-results');
+
+    kbToggle.addEventListener('click', function () {
+      var open = kbPanel.hasAttribute('hidden');
+      if (open) {
+        kbPanel.removeAttribute('hidden');
+        kbToggle.setAttribute('aria-expanded', 'true');
+        kbQ.focus();
+      } else {
+        kbPanel.setAttribute('hidden', '');
+        kbToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    function renderKbError(msg) {
+      kbResults.innerHTML = '<p class="live-chat__kb-empty">' + escapeHtml(msg) + '</p>';
+    }
+
+    function runKbSearch() {
+      var q = (kbQ.value || '').trim();
+      if (!q) {
+        kbResults.innerHTML = '';
+        return;
+      }
+      kbResults.innerHTML = '<p class="live-chat__kb-empty">搜索中…</p>';
+      fetch('/chat/api/kb-search?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('请求失败');
+          return r.json();
+        })
+        .then(function (data) {
+          var list = data.faqs || [];
+          if (!list.length) {
+            kbResults.innerHTML = '<p class="live-chat__kb-empty">未找到匹配条目。</p>';
+            return;
+          }
+          kbResults.innerHTML = '';
+          list.forEach(function (f) {
+            var absUrl = window.location.origin + f.path;
+            var card = document.createElement('div');
+            card.className = 'live-chat__kb-item';
+            var title = document.createElement('div');
+            title.className = 'live-chat__kb-item-title';
+            title.textContent = f.title;
+            var sub = document.createElement('div');
+            sub.className = 'live-chat__kb-item-sub';
+            sub.textContent = f.question || '';
+            var ex = document.createElement('div');
+            ex.className = 'live-chat__kb-item-excerpt';
+            ex.textContent = f.excerpt || '';
+
+            var actions = document.createElement('div');
+            actions.className = 'live-chat__kb-actions';
+
+            var bLink = document.createElement('button');
+            bLink.type = 'button';
+            bLink.className = 'btn btn-outline btn-sm';
+            bLink.textContent = '插入链接';
+            bLink.addEventListener('click', function () {
+              var block = '【知识库】' + f.title + '\n' + absUrl + '\n';
+              appendToCompose(block);
+            });
+
+            var bSum = document.createElement('button');
+            bSum.type = 'button';
+            bSum.className = 'btn btn-outline btn-sm';
+            bSum.textContent = '插入摘要';
+            bSum.addEventListener('click', function () {
+              var body = (f.excerpt && f.excerpt.trim()) || f.question || '';
+              var block =
+                '【知识库】' + f.title + '\n' + body + '\n\n详情：' + absUrl + '\n';
+              appendToCompose(block);
+            });
+
+            var aOpen = document.createElement('a');
+            aOpen.href = f.path;
+            aOpen.target = '_blank';
+            aOpen.rel = 'noopener noreferrer';
+            aOpen.className = 'btn btn-ghost btn-sm';
+            aOpen.textContent = '打开';
+
+            actions.appendChild(bLink);
+            actions.appendChild(bSum);
+            actions.appendChild(aOpen);
+
+            card.appendChild(title);
+            if (f.question) card.appendChild(sub);
+            if (f.excerpt) card.appendChild(ex);
+            card.appendChild(actions);
+            kbResults.appendChild(card);
+          });
+        })
+        .catch(function () {
+          renderKbError('搜索失败，请稍后重试。');
+        });
+    }
+
+    kbSearchBtn.addEventListener('click', runKbSearch);
+    kbQ.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        runKbSearch();
+      }
+    });
+  }
 
   connect();
 })();

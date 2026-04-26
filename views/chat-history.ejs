@@ -43,7 +43,7 @@
               </td>
               <td class="td-muted"><%= r.user_id != null ? r.user_id : '—' %></td>
               <td><strong><%= r.username %></strong></td>
-              <td class="chat-history__text"><%= r.text %></td>
+              <td class="chat-history__text chat-history__text--rich"><%- linkifyChatText(r.text) %></td>
             </tr>
           <% }) %>
         </tbody>
