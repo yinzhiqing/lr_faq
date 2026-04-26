@@ -1,0 +1,15 @@
+[Unit]
+Description=产品知识库系统
+After=network.target
+
+[Service]
+Type=simple
+User=yzq
+WorkingDirectory=/home/yzq/work/claude_code_install/code-dest
+Environment=PORT=3000
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
