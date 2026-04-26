@@ -33,6 +33,10 @@
   --focus-ring: rgba(59, 130, 246, 0.5);
   --btn-primary-bg: #ffffff;
   --btn-primary-text: #1f2228;
+  --btn-primary-hover-bg: rgba(255, 255, 255, 0.9);
+  --btn-primary-hover-text: #1f2228;
+  --select-hover-border: rgba(255, 255, 255, 0.35);
+  --select-arrow-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' fill-opacity='0.65' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, Monaco, monospace;
   --font-sans: 'Geist Sans', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
   --radius: 8px;
@@ -59,6 +63,10 @@ body {
   font-weight: 400;
   min-height: 100vh;
   color-scheme: dark;
+}
+
+html[data-theme="light"] body {
+  color-scheme: light;
 }
 
 main.container {
@@ -291,8 +299,9 @@ h1, .h1 {
   outline: none;
   box-shadow: 0 0 0 2px var(--focus-ring);
 }
-.nav-search-form .btn {
-  min-height: 44px;
+.nav-search-form .btn-icon {
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
 .nav-user {
@@ -428,23 +437,22 @@ h1, .h1 {
   font-size: 16px;
   font-family: var(--font-sans);
   background-color: var(--surface-select);
-  color: #ffffff;
-  color-scheme: dark;
+  color: var(--text-primary);
   cursor: pointer;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' fill-opacity='0.65' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-image: var(--select-arrow-svg);
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
 .form-group select:hover {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--select-hover-border);
 }
 .form-group option,
 .form-group optgroup {
   background-color: var(--surface-select-option);
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .form-group input::placeholder,
 .form-group textarea::placeholder { color: var(--text-quaternary); }
@@ -475,7 +483,7 @@ h1, .h1 {
   font-family: var(--font-sans);
   color: var(--text-secondary);
 }
-.tag-check input { width: auto; accent-color: #ffffff; }
+.tag-check input { width: auto; accent-color: var(--text-primary); }
 
 /* —— Buttons（x.ai：Geist Mono + uppercase + tracking） —— */
 .btn {
@@ -501,8 +509,8 @@ h1, .h1 {
   color: var(--btn-primary-text);
 }
 .btn-primary:hover {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--btn-primary-text);
+  background: var(--btn-primary-hover-bg);
+  color: var(--btn-primary-hover-text);
 }
 .btn-danger {
   background: transparent;
@@ -531,6 +539,36 @@ h1, .h1 {
   color: var(--text-tertiary);
 }
 .btn-group { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+
+/* 纯图标按钮（导航搜索、主题切换） */
+.btn-icon {
+  padding: 0;
+  min-width: 42px;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1;
+}
+.btn-sm.btn-icon {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+}
+.btn-icon__svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  pointer-events: none;
+}
+
+html:not([data-theme="light"]) .theme-toggle .theme-icon--sun { display: block; }
+html:not([data-theme="light"]) .theme-toggle .theme-icon--moon { display: none; }
+html[data-theme="light"] .theme-toggle .theme-icon--sun { display: none; }
+html[data-theme="light"] .theme-toggle .theme-icon--moon { display: block; }
+
 .btn-block { width: 100%; }
 .btn-mt { margin-top: var(--space-2); }
 .btn-mb-group { margin-bottom: var(--space-3); }
@@ -638,23 +676,22 @@ tr:hover { background: var(--surface-subtle); }
   font-size: 14px;
   font-family: var(--font-sans);
   background-color: var(--surface-select);
-  color: #ffffff;
-  color-scheme: dark;
+  color: var(--text-primary);
   cursor: pointer;
   min-height: 44px;
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' fill-opacity='0.65' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-image: var(--select-arrow-svg);
   background-repeat: no-repeat;
   background-position: right 10px center;
 }
 .search-bar select:hover {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--select-hover-border);
 }
 .search-bar option,
 .search-bar optgroup {
   background-color: var(--surface-select-option);
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .search-bar select:focus { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
 
@@ -1089,4 +1126,51 @@ tr:hover { background: var(--surface-subtle); }
   .hero-search { flex-direction: column; }
   .search-bar { flex-direction: column; }
   .hero { padding: var(--space-3) var(--space-2); }
+}
+
+/* —— 浅色主题 —— */
+html[data-theme="light"] {
+  --bg: #eceef1;
+  --text-primary: #1a1d21;
+  --text-secondary: rgba(26, 29, 33, 0.76);
+  --text-tertiary: rgba(26, 29, 33, 0.52);
+  --text-quaternary: rgba(26, 29, 33, 0.38);
+  --border-default: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --surface-subtle: rgba(0, 0, 0, 0.035);
+  --surface-elevated: rgba(0, 0, 0, 0.045);
+  --surface-hover: rgba(0, 0, 0, 0.07);
+  --surface-select: #ffffff;
+  --surface-select-option: #f3f4f6;
+  --focus-ring: rgba(59, 130, 246, 0.45);
+  --btn-primary-bg: #1f2228;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover-bg: #343a44;
+  --btn-primary-hover-text: #ffffff;
+  --select-hover-border: rgba(0, 0, 0, 0.28);
+  --select-arrow-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a1d21' fill-opacity='0.55' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+html[data-theme="light"] .navbar {
+  background: var(--bg);
+  border-bottom-color: var(--border-default);
+}
+
+html[data-theme="light"] .btn-ghost:hover,
+html[data-theme="light"] .btn-outline:hover {
+  background: var(--surface-subtle);
+  color: var(--text-tertiary);
+}
+
+html[data-theme="light"] .card:hover {
+  background: transparent;
+}
+
+html[data-theme="light"] .theme-toggle {
+  border-color: var(--border-strong);
+}
+
+.theme-toggle {
+  flex-shrink: 0;
 }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= locals.title || '产品知识库' %></title>
+  <script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
@@ -35,10 +36,16 @@
         <div class="nav-search">
           <form action="/faqs" method="get" class="nav-search-form">
             <input type="text" name="q" placeholder="快速搜索…" aria-label="搜索">
-            <button type="submit" class="btn btn-primary btn-sm">搜索</button>
+            <button type="submit" class="btn btn-icon btn-ghost btn-sm" title="搜索" aria-label="搜索">
+              <svg class="btn-icon__svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M20 20l-4.2-4.2"/></svg>
+            </button>
           </form>
         </div>
         <div class="nav-user">
+          <button type="button" class="btn btn-icon btn-ghost btn-sm theme-toggle" id="theme-toggle" aria-label="切换到浅色模式" title="浅色模式">
+            <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>
+            <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+          </button>
           <% if (locals.currentUser) { %>
             <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
             <span class="nav-username nav-mono"><%= currentUser.username %></span>
@@ -85,6 +92,31 @@
       row.classList.remove('file-item-active');
     }
   }
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'theme';
+    function syncThemeToggle() {
+      var btn = document.getElementById('theme-toggle');
+      if (!btn) return;
+      var isLight = root.getAttribute('data-theme') === 'light';
+      btn.setAttribute('aria-label', isLight ? '切换到深色模式' : '切换到浅色模式');
+      btn.setAttribute('title', isLight ? '深色模式' : '浅色模式');
+    }
+    var tbtn = document.getElementById('theme-toggle');
+    if (tbtn) {
+      tbtn.addEventListener('click', function () {
+        if (root.getAttribute('data-theme') === 'light') {
+          root.removeAttribute('data-theme');
+          try { localStorage.removeItem(KEY); } catch (e) {}
+        } else {
+          root.setAttribute('data-theme', 'light');
+          try { localStorage.setItem(KEY, 'light'); } catch (e) {}
+        }
+        syncThemeToggle();
+      });
+    }
+    syncThemeToggle();
+  })();
   </script>
 </body>
 </html>
