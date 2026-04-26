@@ -1,6 +1,8 @@
 <div class="page-header">
   <h1>全部问题</h1>
+  <% if (locals.currentUser && (currentUser.role === 'admin' || currentUser.role === 'support')) { %>
   <a href="/faqs/new" class="btn btn-primary">+ 添加问题</a>
+  <% } %>
 </div>
 
 <form action="/faqs" method="get" class="search-bar">
@@ -50,10 +52,12 @@
         </div>
         <div class="btn-group flex-shrink-0">
           <button class="btn btn-outline btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
+          <% if (locals.currentUser && (currentUser.role === 'admin' || currentUser.role === 'support')) { %>
           <a href="/faqs/<%= faq.id %>/edit" class="btn btn-outline btn-sm">编辑</a>
           <form action="/faqs/<%= faq.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('确认删除此问题？')">
             <button class="btn btn-danger btn-sm">删除</button>
           </form>
+          <% } %>
         </div>
       </div>
     </div>

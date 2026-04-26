@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdminOrSupport } = require('../middleware/auth');
 const { logAudit } = require('../lib/auditLog');
 const { processVideo } = require('../services/transcode');
 
@@ -66,7 +66,7 @@ router.get('/', (req, res) => {
 });
 
 // New FAQ form
-router.get('/new', requireAdmin, (req, res) => {
+router.get('/new', requireAdminOrSupport, (req, res) => {
   const products = db.prepare('SELECT * FROM products ORDER BY name').all();
   const categories = db.prepare('SELECT * FROM categories ORDER BY name').all();
   const allTags = db.prepare('SELECT * FROM tags ORDER BY name').all();
@@ -74,7 +74,7 @@ router.get('/new', requireAdmin, (req, res) => {
 });
 
 // Create FAQ
-router.post('/', requireAdmin, upload.array('files', 10), (req, res) => {
+router.post('/', requireAdminOrSupport, upload.array('files', 10), (req, res) => {
   const { title, question, answer, product_id, category_id, tag_ids } = req.body;
   const result = db.prepare(
     'INSERT INTO faqs (title, question, answer, product_id, category_id) VALUES (?, ?, ?, ?, ?)'
@@ -117,7 +117,7 @@ router.get('/api/classify/suggest', (req, res) => {
 });
 
 // Image upload API for inline embedding
-router.post('/api/upload-image', requireAdmin, upload.single('image'), (req, res) => {
+router.post('/api/upload-image', requireAdminOrSupport, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
   res.json({ url: `/uploads/${req.file.filename}`, name: req.file.originalname });
 });
@@ -145,7 +145,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Edit FAQ form
-router.get('/:id/edit', requireAdmin, (req, res) => {
+router.get('/:id/edit', requireAdminOrSupport, (req, res) => {
   const faq = db.prepare('SELECT * FROM faqs WHERE id = ?').get(req.params.id);
   if (!faq) return res.status(404).send('FAQ 不存在');
   faq.tags = db.prepare('SELECT t.* FROM tags t JOIN faq_tags ft ON t.id = ft.tag_id WHERE ft.faq_id = ?').all(faq.id);
@@ -158,7 +158,7 @@ router.get('/:id/edit', requireAdmin, (req, res) => {
 });
 
 // Update FAQ
-router.post('/:id/edit', requireAdmin, upload.array('files', 10), (req, res) => {
+router.post('/:id/edit', requireAdminOrSupport, upload.array('files', 10), (req, res) => {
   const { title, question, answer, product_id, category_id, tag_ids } = req.body;
   db.prepare(`
     UPDATE faqs SET title=?, question=?, answer=?, product_id=?, category_id=?, updated_at=CURRENT_TIMESTAMP
@@ -193,7 +193,7 @@ router.post('/:id/edit', requireAdmin, upload.array('files', 10), (req, res) => 
 });
 
 // Delete FAQ
-router.post('/:id/delete', requireAdmin, (req, res) => {
+router.post('/:id/delete', requireAdminOrSupport, (req, res) => {
   const faqRow = db.prepare('SELECT id, title FROM faqs WHERE id = ?').get(req.params.id);
   if (!faqRow) return res.status(404).send('FAQ 不存在');
   // Clean up files on disk

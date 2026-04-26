@@ -1,3 +1,4 @@
+<% var _faqStaff = locals.currentUser && (currentUser.role === 'admin' || currentUser.role === 'support'); %>
 <div class="breadcrumb">
   <a href="/">首页</a> <span>/</span>
   <a href="/faqs">全部问题</a> <span>/</span>
@@ -17,10 +18,12 @@
     </div>
     <div class="btn-group">
       <button class="btn btn-outline btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
+      <% if (_faqStaff) { %>
       <a href="/faqs/<%= faq.id %>/edit" class="btn btn-primary btn-sm">编辑</a>
       <form action="/faqs/<%= faq.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('确认删除此问题？')">
         <button class="btn btn-danger btn-sm">删除</button>
       </form>
+      <% } %>
     </div>
   </div>
 </div>
@@ -80,9 +83,11 @@
                 <div class="meta-small"><%= (f.size / 1024).toFixed(1) %> KB &middot; <%= isVideo ? '视频 - 点击播放' : isImage ? '图片' : '文件' %></div>
               </div>
               <a href="/files/<%= f.id %>/download" class="btn btn-outline btn-sm" onclick="event.stopPropagation()">下载</a>
+              <% if (_faqStaff) { %>
               <form action="/files/<%= f.id %>/delete" method="post" class="inline-form" onsubmit="event.stopPropagation(); return confirm('确认删除此文件？')">
                 <button class="btn btn-danger btn-sm">删除</button>
               </form>
+              <% } %>
             </div>
             <% if (isVideo) { %>
               <div class="video-player-wrapper" id="<%= vidId %>" style="display:none;">
@@ -95,6 +100,7 @@
         </div>
       <% } %>
 
+      <% if (_faqStaff) { %>
       <h3 class="subsection-heading">上传新附件</h3>
       <form action="/faqs/<%= faq.id %>/edit" method="post" enctype="multipart/form-data">
         <input type="hidden" name="title" value="<%= faq.title %>">
@@ -106,6 +112,7 @@
         <input type="file" name="files" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip">
         <button class="btn btn-primary btn-sm btn-mt" type="submit">上传</button>
       </form>
+      <% } %>
     </div>
   </div>
 </div>

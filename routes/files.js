@@ -2,7 +2,7 @@ const { Router } = require('express');
 const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdminOrSupport } = require('../middleware/auth');
 const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
@@ -24,7 +24,7 @@ router.get('/:id/download', (req, res) => {
   res.download(filePath, file.original_name);
 });
 
-router.post('/:id/delete', requireAdmin, (req, res) => {
+router.post('/:id/delete', requireAdminOrSupport, (req, res) => {
   const file = db.prepare('SELECT * FROM files WHERE id = ?').get(req.params.id);
   if (!file) return res.status(404).send('文件不存在');
   const filePath = path.join(uploadDir, file.filename);

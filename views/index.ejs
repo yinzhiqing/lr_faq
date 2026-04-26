@@ -86,7 +86,7 @@
 <p class="caption text-center" style="margin-bottom: var(--space-4)">登录后可查看知识条目与附件。</p>
 <% } %>
 
-<% if (locals.currentUser && currentUser.role === 'admin') { %>
+<% if (locals.currentUser && (currentUser.role === 'admin' || currentUser.role === 'support')) { %>
 <div class="text-center mt-footer-cta">
   <a href="/faqs/new" class="btn btn-primary">添加新问题</a>
 </div>

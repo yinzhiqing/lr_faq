@@ -106,6 +106,40 @@ db.exec(`
   );
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS chat_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_chat_sessions_updated ON chat_sessions(updated_at DESC);
+`);
+
+(function migrateChatMessagesSessionId() {
+  const cols = db.prepare('PRAGMA table_info(chat_messages)').all();
+  if (!cols.some((c) => c.name === 'session_id')) {
+    db.exec(
+      'ALTER TABLE chat_messages ADD COLUMN session_id INTEGER REFERENCES chat_sessions(id) ON DELETE SET NULL'
+    );
+  }
+  const customers = db
+    .prepare(
+      `SELECT DISTINCT user_id FROM chat_messages
+       WHERE kind = 'customer' AND user_id IS NOT NULL`
+    )
+    .all();
+  const ins = db.prepare('INSERT OR IGNORE INTO chat_sessions (customer_user_id) VALUES (?)');
+  for (const c of customers) {
+    ins.run(c.user_id);
+  }
+  db.prepare(
+    `UPDATE chat_messages
+     SET session_id = (SELECT id FROM chat_sessions WHERE chat_sessions.customer_user_id = chat_messages.user_id)
+     WHERE kind = 'customer' AND user_id IS NOT NULL AND session_id IS NULL`
+  ).run();
+})();
+
 (function seedSiteSettings() {
   const hasMod = db.prepare("SELECT 1 FROM site_settings WHERE key = 'guest_module_home'").get();
   if (!hasMod) {

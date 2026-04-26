@@ -1,12 +1,16 @@
 <div class="page-header">
   <h1>聊天记录</h1>
-  <p class="caption">来源数据库全表，按消息 id 倒序。仅管理员与客服可访问；在线窗口仍只加载最近若干条。</p>
+  <% if (locals.chatHistoryStaffView) { %>
+  <p class="caption">管理员/客服视图：全站消息分页检索。在线工作台按客户会话分栏，需在侧栏选择会话后查看与回复。</p>
+  <% } else { %>
+  <p class="caption">展示<strong>您与全体客服</strong>在当前账号对应会话中的消息（含客服回复）；不包含其他用户的会话。分页为整站该会话内的消息倒序。</p>
+  <% } %>
 </div>
 
 <div class="card">
   <form class="chat-history-search" method="get" action="/chat/history">
     <div class="form-group chat-history-search__field">
-      <input id="chat-history-q" type="search" name="q" value="<%= query.q %>" placeholder="按账号或消息内容搜索…" autocomplete="off" aria-label="搜索账号或消息内容">
+      <input id="chat-history-q" type="search" name="q" value="<%= query.q %>" placeholder="<%= chatHistoryStaffView ? '按账号或消息内容搜索…' : '搜索本会话消息…' %>" autocomplete="off" aria-label="<%= chatHistoryStaffView ? '搜索账号或消息内容' : '搜索本会话消息' %>">
     </div>
     <div class="btn-group">
       <button type="submit" class="btn btn-primary btn-sm">搜索</button>
@@ -27,7 +31,7 @@
           <tr>
             <th>时间</th>
             <th>类型</th>
-            <th>用户 id</th>
+            <% if (chatHistoryStaffView) { %><th>用户 id</th><% } %>
             <th>账号</th>
             <th>内容</th>
           </tr>
@@ -41,7 +45,7 @@
                   <%= r.kind === 'staff' ? '客服' : r.kind === 'customer' ? '用户' : '访客(历史)' %>
                 </span>
               </td>
-              <td class="td-muted"><%= r.user_id != null ? r.user_id : '—' %></td>
+              <% if (chatHistoryStaffView) { %><td class="td-muted"><%= r.user_id != null ? r.user_id : '—' %></td><% } %>
               <td><strong><%= r.username %></strong></td>
               <td class="chat-history__text chat-history__text--rich"><%- linkifyChatText(r.text) %></td>
             </tr>

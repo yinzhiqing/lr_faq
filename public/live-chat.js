@@ -60,6 +60,12 @@
         '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75H18m0 0h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25H18m0 0h-4.5m4.5 0v-4.5m0 4.5L15 15M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15"/>' +
         '</svg></button>'
       : '';
+  var staffLayoutOpen =
+    UI_ROLE === 'staff'
+      ? '<div class="live-chat__body"><aside class="live-chat__sessions" id="live-chat-sessions"><div class="live-chat__sessions-head">会话</div><div class="live-chat__sessions-list" id="live-chat-sessions-list" role="list"></div></aside><div class="live-chat__thread">'
+      : '';
+  var staffLayoutClose = UI_ROLE === 'staff' ? '</div></div>' : '';
+
   var kbSection =
     UI_ROLE === 'staff'
       ? '<div class="live-chat__kb" id="live-chat-kb">' +
@@ -88,12 +94,15 @@
     '<span class="live-chat__status" id="live-chat-status">连接中…</span>' +
     staffFsBtn +
     '<button type="button" class="live-chat__close" id="live-chat-close" aria-label="关闭">×</button></div>' +
+    staffLayoutOpen +
     '<div class="live-chat__hint" id="live-chat-hint"></div>' +
     kbSection +
     '<div class="live-chat__msgs" id="live-chat-msgs" role="log"></div>' +
     '<form class="live-chat__form" id="live-chat-form">' +
     '<textarea id="live-chat-input" class="live-chat__input live-chat__input--compose" rows="2" maxlength="2000" placeholder="输入消息…" autocomplete="off" aria-label="消息内容"></textarea>' +
-    '<button type="submit" class="live-chat__send btn btn-primary btn-sm">发送</button></form></div>';
+    '<button type="submit" class="live-chat__send btn btn-primary btn-sm">发送</button></form>' +
+    staffLayoutClose +
+    '</div>';
 
   document.body.appendChild(root);
 
@@ -104,19 +113,26 @@
   if (accountEl) accountEl.textContent = SESSION_USER;
   if (UI_ROLE === 'staff') {
     hintEl.textContent =
-      '客服工作台：标题栏可全屏（Esc 退出）；可展开「引用知识库」插入 FAQ。管理员与客服均可接待；记录已写入数据库。';
+      '左侧选择客户会话后查看历史并回复；新消息按会话隔离。可全屏（Esc 退出）、引用知识库。';
   } else {
     hintEl.textContent =
-      '单房间：所有登录用户可见相同记录，均以账号名显示。记录已落盘。可授权通知以接收新消息。';
+      '您与全体客服对应对话在本会话内；其他用户有独立会话，不会看到彼此内容。聊天记录页含本会话内客服回复。';
   }
 
   var fab = document.getElementById('live-chat-fab');
   var panel = document.getElementById('live-chat-panel');
+  if (UI_ROLE === 'staff') {
+    panel.classList.add('live-chat__panel--staff');
+  }
   var closeBtn = document.getElementById('live-chat-close');
   var statusEl = document.getElementById('live-chat-status');
   var msgsEl = document.getElementById('live-chat-msgs');
   var form = document.getElementById('live-chat-form');
   var input = document.getElementById('live-chat-input');
+  var sessionsListEl = UI_ROLE === 'staff' ? document.getElementById('live-chat-sessions-list') : null;
+  var activeSessionId = null;
+  /** @type {Object<number, number>} */
+  var sessionUnread = {};
 
   var ws = null;
   var reconnectTimer = null;
@@ -139,6 +155,96 @@
     fab.setAttribute('data-unread', '1');
   }
 
+  function staffUnreadTotal() {
+    var t = 0;
+    for (var k in sessionUnread) {
+      if (Object.prototype.hasOwnProperty.call(sessionUnread, k)) t += sessionUnread[k];
+    }
+    return t;
+  }
+
+  function syncStaffFabBadge() {
+    if (UI_ROLE !== 'staff') return;
+    unreadCount = staffUnreadTotal();
+    updateBadge();
+  }
+
+  function bumpSessionUnread(sid) {
+    sid = Number(sid);
+    if (!sid) return;
+    sessionUnread[sid] = (sessionUnread[sid] || 0) + 1;
+    syncStaffFabBadge();
+  }
+
+  function clearSessionUnreadFor(sid) {
+    sid = Number(sid);
+    if (!sid || !sessionUnread[sid]) return;
+    delete sessionUnread[sid];
+    syncStaffFabBadge();
+  }
+
+  function makeSessionRow(s) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'live-chat__session-row';
+    btn.setAttribute('data-session-id', String(s.id));
+    var name = s.displayName || s.username || '用户';
+    var prev = s.lastPreview || '';
+    btn.innerHTML =
+      '<span class="live-chat__session-name">' +
+      escapeHtml(name) +
+      '</span>' +
+      '<span class="live-chat__session-preview">' +
+      escapeHtml(prev) +
+      '</span>';
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.live-chat__session-row--active').forEach(function (x) {
+        x.classList.remove('live-chat__session-row--active');
+      });
+      btn.classList.add('live-chat__session-row--active');
+      selectStaffSession(s.id);
+    });
+    return btn;
+  }
+
+  function renderSessionsList(sessions) {
+    if (!sessionsListEl || !Array.isArray(sessions)) return;
+    sessionsListEl.innerHTML = '';
+    sessions.forEach(function (s) {
+      sessionsListEl.appendChild(makeSessionRow(s));
+    });
+  }
+
+  function prependSessionRow(s) {
+    if (!sessionsListEl) return;
+    var existing = sessionsListEl.querySelector('[data-session-id="' + String(s.id) + '"]');
+    if (existing) {
+      sessionsListEl.removeChild(existing);
+    }
+    sessionsListEl.insertBefore(makeSessionRow(s), sessionsListEl.firstChild);
+  }
+
+  function onSessionActivity(d) {
+    if (!sessionsListEl || d.sessionId == null) return;
+    var sid = String(d.sessionId);
+    var row = sessionsListEl.querySelector('[data-session-id="' + sid + '"]');
+    if (!row) return;
+    var prevEl = row.querySelector('.live-chat__session-preview');
+    if (prevEl && d.lastPreview != null) prevEl.textContent = d.lastPreview;
+    sessionsListEl.insertBefore(row, sessionsListEl.firstChild);
+  }
+
+  function selectStaffSession(sid) {
+    sid = Number(sid);
+    if (!sid || !ws || ws.readyState !== WebSocket.OPEN) return;
+    clearSessionUnreadFor(sid);
+    activeSessionId = sid;
+    clearMsgs();
+    ws.send(JSON.stringify({ type: 'fetchHistory', sessionId: sid }));
+    var sendBtn = form.querySelector('.live-chat__send');
+    if (sendBtn) sendBtn.disabled = false;
+  }
+
   function maybeAskNotificationPermission() {
     try {
       if (typeof Notification === 'undefined') return;
@@ -153,10 +259,23 @@
   function alertNewMessage(m) {
     if (isMine(m)) return;
     var panelOpen = !panel.hasAttribute('hidden');
-    if (panelOpen && !document.hidden) return;
+    var sid = m.sessionId != null ? Number(m.sessionId) : null;
 
-    unreadCount++;
-    updateBadge();
+    if (UI_ROLE === 'staff') {
+      if (sid && sid === activeSessionId && panelOpen && !document.hidden) {
+        return;
+      }
+      if (sid) {
+        bumpSessionUnread(sid);
+      } else {
+        unreadCount++;
+        updateBadge();
+      }
+    } else {
+      if (panelOpen && !document.hidden) return;
+      unreadCount++;
+      updateBadge();
+    }
 
     if (document.hidden && baseTitle && document.title.indexOf('【新消息】') !== 0) {
       document.title = '【新消息】' + baseTitle;
@@ -216,12 +335,24 @@
     msgsEl.innerHTML = '';
   }
 
+  function showMsgsPlaceholder(text) {
+    var p = document.createElement('p');
+    p.className = 'live-chat__msgs-placeholder';
+    p.textContent = text;
+    msgsEl.appendChild(p);
+  }
+
   function applyHistory(list) {
     clearMsgs();
     list.forEach(function (m) {
       if (m.type !== 'msg') return;
       appendMessage(m);
     });
+    if (UI_ROLE === 'staff' && (!list || list.length === 0)) {
+      showMsgsPlaceholder(
+        activeSessionId ? '该会话暂无消息。' : '请先在左侧选择一个客户会话，再查看历史与回复。'
+      );
+    }
   }
 
   function connect() {
@@ -243,6 +374,17 @@
       everOpened = true;
       reconnectFailures = 0;
       setStatus('已连接', true);
+      if (UI_ROLE === 'staff') {
+        activeSessionId = null;
+        clearMsgs();
+        document.querySelectorAll('.live-chat__session-row--active').forEach(function (x) {
+          x.classList.remove('live-chat__session-row--active');
+        });
+        var sendBtn0 = form.querySelector('.live-chat__send');
+        if (sendBtn0) sendBtn0.disabled = true;
+        sessionUnread = {};
+        syncStaffFabBadge();
+      }
     };
 
     ws.onclose = function () {
@@ -274,13 +416,44 @@
       } catch (e) {
         return;
       }
+      if (data.type === 'sessionsSnapshot' && UI_ROLE === 'staff') {
+        renderSessionsList(data.sessions);
+        return;
+      }
+      if (data.type === 'sessionCreated' && UI_ROLE === 'staff') {
+        if (data.session) prependSessionRow(data.session);
+        return;
+      }
+      if (data.type === 'sessionActivity' && UI_ROLE === 'staff') {
+        onSessionActivity(data);
+        return;
+      }
       if (data.type === 'history' && Array.isArray(data.messages)) {
+        if (data.staffSelectSession) {
+          applyHistory([]);
+          return;
+        }
+        if (
+          UI_ROLE === 'staff' &&
+          data.sessionId != null &&
+          Number(data.sessionId) !== Number(activeSessionId)
+        ) {
+          return;
+        }
         applyHistory(data.messages);
         return;
       }
       if (data.type === 'msg') {
-        appendMessage(data);
-        alertNewMessage(data);
+        if (UI_ROLE === 'staff') {
+          var msid = data.sessionId != null ? Number(data.sessionId) : null;
+          if (msid && msid === activeSessionId) {
+            appendMessage(data);
+          }
+          alertNewMessage(data);
+        } else {
+          appendMessage(data);
+          alertNewMessage(data);
+        }
       }
     };
   }
@@ -302,7 +475,11 @@
     var isOpen = open != null ? open : panel.hasAttribute('hidden');
     if (isOpen) {
       maybeAskNotificationPermission();
-      unreadCount = 0;
+      if (UI_ROLE === 'staff') {
+        if (activeSessionId) clearSessionUnreadFor(activeSessionId);
+      } else {
+        unreadCount = 0;
+      }
       updateBadge();
       if (document.title.indexOf('【新消息】') === 0) {
         document.title = baseTitle;
@@ -368,11 +545,19 @@
     });
   }
 
+  if (UI_ROLE === 'staff') {
+    var sendInit = form.querySelector('.live-chat__send');
+    if (sendInit) sendInit.disabled = true;
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var text = input.value.trim();
     if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'msg', text: text }));
+    if (UI_ROLE === 'staff' && !activeSessionId) return;
+    var payload = { type: 'msg', text: text };
+    if (UI_ROLE === 'staff') payload.sessionId = activeSessionId;
+    ws.send(JSON.stringify(payload));
     input.value = '';
   });
 
