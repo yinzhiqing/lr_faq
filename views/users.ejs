@@ -1,0 +1,64 @@
+<div class="page-header">
+  <h1>用户管理</h1>
+</div>
+
+<% if (error) { %><div class="alert" style="background:#fff0f0;color:#c00;border:1px solid #fcc;margin-bottom:16px;"><%= error %></div><% } %>
+
+<div class="two-col">
+  <div class="card<%= current ? ' card-edit' : '' %>" id="user-form">
+    <h2 style="font-size:1.1em;margin-bottom:4px;">
+      <%= current ? '编辑用户：' + current.username : '新建用户' %>
+    </h2>
+    <% if (current) { %>
+      <p style="font-size:0.8em;color:#888;margin-bottom:12px;">
+        角色: <%= current.role === 'admin' ? '管理员' : '普通用户' %> | 创建: <%= current.created_at %>
+      </p>
+    <% } %>
+    <form action="<%= current ? `/users/${current.id}/edit` : '/users' %>" method="post">
+      <div class="form-group">
+        <label>用户名 *</label>
+        <input type="text" name="username" value="<%= current ? current.username : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>密码 <%= current ? '(留空则不修改)' : '*' %></label>
+        <input type="password" name="password" <%= current ? '' : 'required' %> placeholder="<%= current ? '留空则不修改密码' : '' %>">
+      </div>
+      <div class="form-group">
+        <label>角色</label>
+        <select name="role">
+          <option value="user" <%= (current && current.role === 'user') ? 'selected' : '' %>>普通用户 (user)</option>
+          <option value="admin" <%= (current && current.role === 'admin') ? 'selected' : '' %>>管理员 (admin)</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary"><%= current ? '保存修改' : '创建用户' %></button>
+        <% if (current) { %><a href="/users" class="btn btn-outline btn-sm">取消编辑</a><% } %>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1.1em;margin-bottom:12px">用户列表</h2>
+    <table>
+      <thead><tr><th>用户名</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+      <% users.forEach(u => { %>
+        <tr class="<%= (current && current.id === u.id) ? 'row-highlight' : '' %>">
+          <td>
+            <strong><%= u.username %></strong>
+            <% if (u.username === 'admin') { %><span class="tag" style="margin-left:4px;">默认</span><% } %>
+          </td>
+          <td><span class="tag <%= u.role === 'admin' ? 'tag-primary' : '' %>"><%= u.role === 'admin' ? '管理员' : '普通用户' %></span></td>
+          <td style="font-size:0.82em;color:#888;"><%= u.created_at %></td>
+          <td>
+            <div class="btn-group">
+              <a href="/users/<%= u.id %>/edit#user-form" class="btn btn-outline btn-sm">编辑</a>
+              <form action="/users/<%= u.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('确认删除用户 <%= u.username %>？')">
+                <button class="btn btn-danger btn-sm">删除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    </table>
+  </div>
+</div>

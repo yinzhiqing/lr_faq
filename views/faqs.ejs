@@ -1,0 +1,61 @@
+<div class="page-header">
+  <h1>全部问题</h1>
+  <a href="/faqs/new" class="btn btn-primary">+ 添加问题</a>
+</div>
+
+<form action="/faqs" method="get" class="search-bar">
+  <input type="text" name="q" placeholder="搜索标题、问题或答案..." value="<%= query.q || '' %>">
+  <select name="product">
+    <option value="">所有产品</option>
+    <% products.forEach(p => { %>
+      <option value="<%= p.id %>" <%= query.product == p.id ? 'selected' : '' %>><%= p.name %></option>
+    <% }) %>
+  </select>
+  <select name="category">
+    <option value="">所有分类</option>
+    <% categories.forEach(c => { %>
+      <option value="<%= c.id %>" <%= query.category == c.id ? 'selected' : '' %>><%= c.name %></option>
+    <% }) %>
+  </select>
+  <select name="tag">
+    <option value="">所有标签</option>
+    <% tags.forEach(t => { %>
+      <option value="<%= t.id %>" <%= query.tag == t.id ? 'selected' : '' %>><%= t.name %></option>
+    <% }) %>
+  </select>
+  <button class="btn btn-primary" type="submit">搜索</button>
+</form>
+
+<% if (faqs.length === 0) { %>
+  <div class="card"><p style="color:#888;text-align:center;padding:20px;">没有找到匹配的问题。</p></div>
+<% } else { %>
+  <% faqs.forEach(faq => { %>
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <% if (faq.product_name) { %><span class="badge badge-product"><%= faq.product_name %></span><% } %>
+            <% if (faq.category_name) { %><a href="/faqs?category=<%= faq.category_id %>" class="tag"><%= faq.category_name %></a><% } %>
+          </div>
+          <a href="/faqs/<%= faq.id %>" style="font-weight:600;font-size:1.05em;text-decoration:none;color:#1a1a2e;">
+            <%= faq.title %>
+          </a>
+          <p style="margin-top:6px;color:#555;font-size:0.88em;"><%= (faq.question || '').substring(0, 150) %><%= (faq.question || '').length > 150 ? '...' : '' %></p>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div>
+              <% (faq.tags || []).forEach(t => { %><a href="/faqs?tag=<%= t.id %>" class="tag"><%= t.name %></a><% }) %>
+            </div>
+            <span style="color:#aaa;font-size:0.78em;"><%= faq.updated_at %></span>
+          </div>
+        </div>
+        <div class="btn-group" style="flex-shrink:0;">
+          <button class="btn btn-outline btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
+          <a href="/faqs/<%= faq.id %>/edit" class="btn btn-outline btn-sm">编辑</a>
+          <form action="/faqs/<%= faq.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('确认删除此问题？')">
+            <button class="btn btn-danger btn-sm">删除</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+<% } %>

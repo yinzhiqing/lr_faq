@@ -1,0 +1,74 @@
+<div class="page-header">
+  <h1>分类管理</h1>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h2 style="font-size:1.1em;margin-bottom:12px">
+      <%= current ? '编辑分类' : '新建分类' %>
+    </h2>
+    <form action="<%= current ? `/categories/${current.id}/edit` : '/categories' %>" method="post">
+      <div class="form-group">
+        <label>名称 *</label>
+        <input type="text" name="name" value="<%= current ? current.name : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>所属产品</label>
+        <select name="product_id">
+          <option value="">-- 通用 --</option>
+          <% (products || []).forEach(p => { %>
+            <option value="<%= p.id %>" <%= (current && current.product_id == p.id) ? 'selected' : '' %>><%= p.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>所属父分类</label>
+        <select name="parent_id">
+          <option value="">-- 无（顶级分类）--</option>
+          <% function renderOptions(list, depth) {
+            list.forEach(c => {
+              const isCurrent = current && current.id == c.id;
+              if (isCurrent) return;
+              %>
+              <option value="<%= c.id %>" <%= (current && current.parent_id == c.id) ? 'selected' : '' %>>
+                <%= '—'.repeat(depth) %> <%= c.name %> <% if (c.product_name) { %>(<%= c.product_name %>)<% } %>
+              </option>
+              <% if (c.children) renderOptions(c.children, depth + 1);
+            });
+          }
+          renderOptions(tree, 0); %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <input type="text" name="description" value="<%= current ? current.description || '' : '' %>">
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary"><%= current ? '保存' : '创建' %></button>
+        <% if (current) { %><a href="/categories" class="btn btn-outline btn-sm">取消</a><% } %>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1.1em;margin-bottom:12px">分类列表</h2>
+    <% function renderTree(list) {
+      if (list.length === 0) { %><p style="color:#888">暂无分类。</p><% return; }
+      list.forEach(c => { %>
+        <div class="tree-item">
+          <span class="name"><%= c.name %></span>
+          <% if (c.product_name) { %><span class="tag"><%= c.product_name %></span><% } %>
+          <% if (c.description) { %><span class="desc"><%= c.description %></span><% } %>
+          <a href="/categories/<%= c.id %>/edit" class="btn btn-outline btn-sm">编辑</a>
+          <form action="/categories/<%= c.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('删除分类将取消关联 FAQ 的分类，确认删除？')">
+            <button class="btn btn-danger btn-sm">删除</button>
+          </form>
+        </div>
+        <% if (c.children && c.children.length > 0) { %>
+          <div class="children"><% renderTree(c.children) %></div>
+        <% }
+      });
+    }
+    renderTree(tree); %>
+  </div>
+</div>

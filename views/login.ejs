@@ -1,0 +1,23 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <h1>产品知识库</h1>
+    <p class="login-sub">请登录以继续</p>
+    <% if (error) { %><div class="alert" style="background:#fff0f0;color:#c00;border:1px solid #fcc;"><%= error %></div><% } %>
+    <form action="/auth/login" method="post">
+      <input type="hidden" name="return" value="<%= returnUrl %>">
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" name="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;">登录</button>
+    </form>
+    <div class="login-hint">
+      <p>管理员: admin / admin123</p>
+      <p>普通用户: user1 / user123</p>
+    </div>
+  </div>
+</div>

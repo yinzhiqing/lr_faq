@@ -1,0 +1,61 @@
+<div class="hero">
+  <h1>产品知识库</h1>
+  <p>快速查找产品问题的解决方案</p>
+  <form action="/faqs" method="get" class="hero-search">
+    <input type="text" name="q" placeholder="输入关键词搜索问题、报错、配置方法...">
+    <button class="btn btn-primary" type="submit">搜索</button>
+  </form>
+  <div class="hero-stats">
+    <span><%= totalProducts %> 个产品</span>
+    <span><%= totalFaqs %> 条知识</span>
+  </div>
+</div>
+
+<div class="page-header">
+  <h2>产品</h2>
+  <a href="/products" class="btn btn-outline btn-sm">管理产品</a>
+</div>
+<div class="product-grid">
+  <% products.forEach(p => { %>
+    <a href="/faqs?product=<%= p.id %>" class="product-card">
+      <div class="product-icon">P</div>
+      <div class="product-info">
+        <div class="product-name"><%= p.name %></div>
+        <div class="product-desc"><%= p.description || '' %></div>
+        <div class="product-count"><%= p.faq_count %> 条知识</div>
+      </div>
+    </a>
+  <% }) %>
+  <% if (products.length === 0) { %>
+    <div class="card" style="grid-column:1/-1;text-align:center;color:#888;">暂无产品，请先 <a href="/products">添加产品</a></div>
+  <% } %>
+</div>
+
+<div class="page-header">
+  <h2>最新更新</h2>
+  <a href="/faqs" class="btn btn-outline btn-sm">查看全部</a>
+</div>
+<div class="recent-list">
+  <% recentFaqs.forEach(faq => { %>
+    <div class="recent-item">
+      <div class="recent-main">
+        <a href="/faqs/<%= faq.id %>" class="recent-title"><%= faq.title %></a>
+        <div class="recent-meta">
+          <span class="badge badge-product"><%= faq.product_name || '未分类' %></span>
+          <% if (faq.category_name) { %><span class="badge"><%= faq.category_name %></span><% } %>
+        </div>
+      </div>
+      <div class="recent-actions">
+        <span class="recent-time"><%= faq.updated_at %></span>
+        <button class="btn btn-outline btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
+      </div>
+    </div>
+  <% }) %>
+  <% if (recentFaqs.length === 0) { %>
+    <div class="card" style="text-align:center;color:#888;">暂无内容</div>
+  <% } %>
+</div>
+
+<div style="margin-top:20px;text-align:center;">
+  <a href="/faqs/new" class="btn btn-primary" style="padding:10px 24px;font-size:1em;">+ 添加新问题</a>
+</div>

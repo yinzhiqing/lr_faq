@@ -1,0 +1,52 @@
+<div class="page-header">
+  <h1>产品管理</h1>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h2 style="font-size:1.1em;margin-bottom:12px">
+      <%= current ? '编辑产品' : '新建产品' %>
+    </h2>
+    <form action="<%= current ? `/products/${current.id}/edit` : '/products' %>" method="post">
+      <div class="form-group">
+        <label>产品名称 *</label>
+        <input type="text" name="name" value="<%= current ? current.name : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <input type="text" name="description" value="<%= current ? current.description || '' : '' %>" placeholder="一句话描述这个产品">
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary"><%= current ? '保存' : '创建' %></button>
+        <% if (current) { %><a href="/products" class="btn btn-outline btn-sm">取消</a><% } %>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1.1em;margin-bottom:12px">产品列表</h2>
+    <% if (products.length === 0) { %>
+      <p style="color:#888">暂无产品，请先创建产品。</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>名称</th><th>描述</th><th>知识数</th><th>操作</th></tr></thead>
+        <% products.forEach(p => { %>
+          <tr>
+            <td><strong><%= p.name %></strong></td>
+            <td style="color:#888;font-size:0.85em"><%= p.description || '-' %></td>
+            <td><a href="/faqs?product=<%= p.id %>"><%= p.faq_count %></a></td>
+            <td>
+              <div class="btn-group">
+                <a href="/faqs?product=<%= p.id %>" class="btn btn-outline btn-sm">查看</a>
+                <a href="/products/<%= p.id %>/edit" class="btn btn-outline btn-sm">编辑</a>
+                <form action="/products/<%= p.id %>/delete" method="post" class="inline-form" onsubmit="return confirm('确认删除此产品？关联的 FAQ 不会删除')">
+                  <button class="btn btn-danger btn-sm">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </table>
+    <% } %>
+  </div>
+</div>

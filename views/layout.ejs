@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= locals.title || '产品知识库' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo">产品知识库</a>
+      <div class="nav-links">
+        <a href="/faqs">全部问题</a>
+        <% if (locals.currentUser) { %>
+          <a href="/faqs/new">添加问题</a>
+          <% if (currentUser.role === 'admin') { %>
+            <a href="/products">产品</a>
+            <a href="/categories">分类</a>
+            <a href="/tags">标签</a>
+            <a href="/users">用户</a>
+          <% } %>
+        <% } %>
+      </div>
+      <div class="nav-search">
+        <form action="/faqs" method="get" class="nav-search-form">
+          <input type="text" name="q" placeholder="快速搜索...">
+          <button type="submit">搜索</button>
+        </form>
+      </div>
+      <div class="nav-user">
+        <% if (locals.currentUser) { %>
+          <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
+          <span class="nav-username"><%= currentUser.username %></span>
+          <a href="/auth/logout" class="nav-logout">退出</a>
+        <% } else { %>
+          <a href="/auth/login" class="nav-login">登录</a>
+        <% } %>
+      </div>
+    </div>
+  </nav>
+  <main class="container">
+    <%- body %>
+  </main>
+  <script>
+  function copyShareLink(faqId, btn) {
+    const url = window.location.origin + '/faqs/' + faqId;
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '已复制!';
+      btn.classList.add('btn-copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('btn-copied'); }, 2000);
+    });
+  }
+  function toggleVideo(vidId, row) {
+    const el = document.getElementById(vidId);
+    if (el.style.display === 'none') {
+      el.style.display = 'block';
+      row.classList.add('file-item-active');
+    } else {
+      el.style.display = 'none';
+      row.classList.remove('file-item-active');
+    }
+  }
+  </script>
+</body>
+</html>
