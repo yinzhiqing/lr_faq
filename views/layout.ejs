@@ -34,17 +34,17 @@
         </div>
         <div class="nav-search">
           <form action="/faqs" method="get" class="nav-search-form">
-            <input type="text" name="q" placeholder="Search…" aria-label="搜索">
-            <button type="submit" class="btn btn-primary btn-sm">Go</button>
+            <input type="text" name="q" placeholder="快速搜索…" aria-label="搜索">
+            <button type="submit" class="btn btn-primary btn-sm">搜索</button>
           </form>
         </div>
         <div class="nav-user">
           <% if (locals.currentUser) { %>
             <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
             <span class="nav-username nav-mono"><%= currentUser.username %></span>
-            <a href="/auth/logout" class="nav-logout nav-mono">LOG OUT</a>
+            <a href="/auth/logout" class="nav-logout">退出</a>
           <% } else { %>
-            <a href="/auth/login" class="btn btn-primary btn-sm nav-login-btn">SIGN IN</a>
+            <a href="/auth/login" class="btn btn-primary btn-sm nav-login-btn">登录</a>
           <% } %>
         </div>
       </div>

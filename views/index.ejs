@@ -6,12 +6,12 @@
   </h1>
   <p class="hero-subtitle hero-subtitle--xai">产品知识库 — 面向团队的问题、文档与附件检索。</p>
   <form action="/faqs" method="get" class="hero-search hero-search--xai">
-    <input type="text" name="q" placeholder="Search issues, errors, how-tos…" aria-label="搜索问题">
-    <button class="btn btn-primary" type="submit">SEARCH</button>
+    <input type="text" name="q" placeholder="输入关键词搜索问题、报错、配置方法…" aria-label="搜索问题">
+    <button class="btn btn-primary" type="submit">搜索</button>
   </form>
   <div class="hero-stats hero-stats--xai">
-    <span class="hero-stat"><span class="hero-stat__n"><%= totalProducts %></span> PRODUCTS</span>
-    <span class="hero-stat"><span class="hero-stat__n"><%= totalFaqs %></span> ARTICLES</span>
+    <span class="hero-stat"><span class="hero-stat__n"><%= totalProducts %></span> 个产品</span>
+    <span class="hero-stat"><span class="hero-stat__n"><%= totalFaqs %></span> 条知识</span>
   </div>
 </section>
 
@@ -19,7 +19,7 @@
   <p class="section-kicker">[ Browse ]</p>
   <div class="page-header page-header--xai">
     <h2 class="section-title-xai">按产品浏览</h2>
-    <a href="/products" class="btn btn-ghost btn-sm">MANAGE</a>
+    <a href="/products" class="btn btn-ghost btn-sm">管理产品</a>
   </div>
 </div>
 <div class="product-grid product-grid--xai">
@@ -29,7 +29,7 @@
       <div class="product-info">
         <div class="product-name"><%= p.name %></div>
         <div class="product-desc"><%= p.description || '' %></div>
-        <div class="product-count mono-caps"><%= p.faq_count %> ENTRIES</div>
+        <div class="product-count"><%= p.faq_count %> 条知识</div>
       </div>
     </a>
   <% }) %>
@@ -42,7 +42,7 @@
   <p class="section-kicker">[ Latest ]</p>
   <div class="page-header page-header--xai">
     <h2 class="section-title-xai">最新更新</h2>
-    <a href="/faqs" class="btn btn-ghost btn-sm">VIEW ALL</a>
+    <a href="/faqs" class="btn btn-ghost btn-sm">查看全部</a>
   </div>
 </div>
 <div class="recent-list">
@@ -57,7 +57,7 @@
       </div>
       <div class="recent-actions">
         <span class="recent-time mono-caps"><%= faq.updated_at %></span>
-        <button class="btn btn-ghost btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">COPY LINK</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
       </div>
     </div>
   <% }) %>
@@ -67,5 +67,5 @@
 </div>
 
 <div class="text-center mt-section-xai">
-  <a href="/faqs/new" class="btn btn-primary">NEW ARTICLE</a>
+  <a href="/faqs/new" class="btn btn-primary">添加新问题</a>
 </div>
