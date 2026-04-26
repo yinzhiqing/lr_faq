@@ -5,10 +5,10 @@
 </div>
 
 <div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+  <div class="flex-between">
     <div>
-      <h1 style="font-size:1.4em"><%= faq.title %></h1>
-      <p style="color:#888;font-size:0.85em;margin-top:4px;">
+      <h1 class="faq-detail-title"><%= faq.title %></h1>
+      <p class="inline-meta">
         产品: <% if (faq.product_name) { %><a href="/faqs?product=<%= faq.product_id %>" class="badge badge-product"><%= faq.product_name %></a><% } else { %>未分类<% } %>
         &nbsp;|&nbsp; 分类: <a href="/faqs?category=<%= faq.category_id %>"><%= faq.category_name || '未分类' %></a>
         &nbsp;|&nbsp; 更新: <%= faq.updated_at %>
@@ -27,12 +27,12 @@
 <div class="two-col">
   <div>
     <div class="card">
-      <h2 style="font-size:1.1em;margin-bottom:12px;color:#e94560">问题</h2>
-      <p><%= faq.question %></p>
+      <h2 class="section-heading">问题</h2>
+      <p class="text-secondary"><%= faq.question %></p>
     </div>
 
     <div class="card">
-      <h2 style="font-size:1.1em;margin-bottom:12px;color:#2d6a4f">解决方案</h2>
+      <h2 class="section-heading">解决方案</h2>
       <div class="answer-content">
         <%- faq.answer.replace(/<script/g, '&lt;script').replace(/<iframe/g, '&lt;iframe') %>
       </div>
@@ -41,9 +41,9 @@
 
   <div>
     <div class="card">
-      <h2 style="font-size:1.1em;margin-bottom:8px;">标签</h2>
+      <h2 class="section-heading">标签</h2>
       <% if (faq.tags.length === 0) { %>
-        <p style="color:#888;font-size:0.9em;">无标签</p>
+        <p class="caption">无标签</p>
       <% } else { %>
         <div>
           <% faq.tags.forEach(t => { %>
@@ -54,11 +54,11 @@
     </div>
 
     <div class="card">
-      <h2 style="font-size:1.1em;margin-bottom:8px;">附件 (<%= faq.files.length %>)</h2>
+      <h2 class="section-heading">附件 (<%= faq.files.length %>)</h2>
       <% if (faq.files.length === 0) { %>
-        <p style="color:#888;font-size:0.9em;">无附件</p>
+        <p class="caption">无附件</p>
       <% } else { %>
-        <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="flex-col-gap">
           <% faq.files.forEach((f, idx) => {
             const isImage = /^image\//.test(f.mime_type);
             const isVideo = /^video\//.test(f.mime_type);
@@ -66,7 +66,7 @@
           %>
             <div class="file-item<%= isVideo ? ' file-item-clickable' : '' %>" <%- isVideo ? `onclick="toggleVideo('${vidId}', this)"` : '' %>>
               <% if (isImage) { %>
-                <a href="/files/<%= f.id %>/view" target="_blank" style="flex-shrink:0;" onclick="event.stopPropagation()">
+                <a href="/files/<%= f.id %>/view" target="_blank" class="flex-shrink-0" onclick="event.stopPropagation()">
                   <img src="/files/<%= f.id %>/view" alt="<%= f.original_name %>" class="thumb-preview">
                 </a>
               <% } else if (isVideo) { %>
@@ -74,9 +74,9 @@
               <% } else { %>
                 <span class="file-icon doc-icon">&#128196;</span>
               <% } %>
-              <div style="flex:1;min-width:0;">
+              <div class="flex-1-min">
                 <div class="file-name-text"><%= f.original_name %></div>
-                <div style="font-size:0.75em;color:#888;"><%= (f.size / 1024).toFixed(1) %> KB &middot; <%= isVideo ? '视频 - 点击播放' : isImage ? '图片' : '文件' %></div>
+                <div class="meta-small"><%= (f.size / 1024).toFixed(1) %> KB &middot; <%= isVideo ? '视频 - 点击播放' : isImage ? '图片' : '文件' %></div>
               </div>
               <a href="/files/<%= f.id %>/download" class="btn btn-outline btn-sm" onclick="event.stopPropagation()">下载</a>
               <form action="/files/<%= f.id %>/delete" method="post" class="inline-form" onsubmit="event.stopPropagation(); return confirm('确认删除此文件？')">
@@ -94,7 +94,7 @@
         </div>
       <% } %>
 
-      <h3 style="font-size:0.95em;margin-top:16px;margin-bottom:8px;">上传新附件</h3>
+      <h3 class="subsection-heading">上传新附件</h3>
       <form action="/faqs/<%= faq.id %>/edit" method="post" enctype="multipart/form-data">
         <input type="hidden" name="title" value="<%= faq.title %>">
         <input type="hidden" name="question" value="<%= faq.question %>">
@@ -103,7 +103,7 @@
         <input type="hidden" name="category_id" value="<%= faq.category_id || '' %>">
         <% faq.tags.forEach(t => { %><input type="hidden" name="tag_ids" value="<%= t.id %>"><% }) %>
         <input type="file" name="files" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip">
-        <button class="btn btn-primary btn-sm" style="margin-top:8px">上传</button>
+        <button class="btn btn-primary btn-sm btn-mt" type="submit">上传</button>
       </form>
     </div>
   </div>

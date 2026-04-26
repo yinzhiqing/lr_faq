@@ -1,39 +1,49 @@
-<div class="hero">
-  <h1>产品知识库</h1>
-  <p>快速查找产品问题的解决方案</p>
-  <form action="/faqs" method="get" class="hero-search">
-    <input type="text" name="q" placeholder="输入关键词搜索问题、报错、配置方法...">
-    <button class="btn btn-primary" type="submit">搜索</button>
+<section class="hero hero--xai">
+  <p class="hero-kicker">[ Knowledge ]</p>
+  <h1 class="display-mega" aria-label="产品知识库">
+    <span class="display-mega__line">ANSWERS</span>
+    <span class="display-mega__line">AT SCALE</span>
+  </h1>
+  <p class="hero-subtitle hero-subtitle--xai">产品知识库 — 面向团队的问题、文档与附件检索。</p>
+  <form action="/faqs" method="get" class="hero-search hero-search--xai">
+    <input type="text" name="q" placeholder="Search issues, errors, how-tos…" aria-label="搜索问题">
+    <button class="btn btn-primary" type="submit">SEARCH</button>
   </form>
-  <div class="hero-stats">
-    <span><%= totalProducts %> 个产品</span>
-    <span><%= totalFaqs %> 条知识</span>
+  <div class="hero-stats hero-stats--xai">
+    <span class="hero-stat"><span class="hero-stat__n"><%= totalProducts %></span> PRODUCTS</span>
+    <span class="hero-stat"><span class="hero-stat__n"><%= totalFaqs %></span> ARTICLES</span>
+  </div>
+</section>
+
+<div class="section-xai">
+  <p class="section-kicker">[ Browse ]</p>
+  <div class="page-header page-header--xai">
+    <h2 class="section-title-xai">按产品浏览</h2>
+    <a href="/products" class="btn btn-ghost btn-sm">MANAGE</a>
   </div>
 </div>
-
-<div class="page-header">
-  <h2>产品</h2>
-  <a href="/products" class="btn btn-outline btn-sm">管理产品</a>
-</div>
-<div class="product-grid">
+<div class="product-grid product-grid--xai">
   <% products.forEach(p => { %>
     <a href="/faqs?product=<%= p.id %>" class="product-card">
-      <div class="product-icon">P</div>
+      <div class="product-icon" aria-hidden="true"><%= p.name && p.name.length ? p.name.charAt(0) : '·' %></div>
       <div class="product-info">
         <div class="product-name"><%= p.name %></div>
         <div class="product-desc"><%= p.description || '' %></div>
-        <div class="product-count"><%= p.faq_count %> 条知识</div>
+        <div class="product-count mono-caps"><%= p.faq_count %> ENTRIES</div>
       </div>
     </a>
   <% }) %>
   <% if (products.length === 0) { %>
-    <div class="card" style="grid-column:1/-1;text-align:center;color:#888;">暂无产品，请先 <a href="/products">添加产品</a></div>
+    <div class="card card--muted grid-span-all">暂无产品，请先 <a href="/products">添加产品</a></div>
   <% } %>
 </div>
 
-<div class="page-header">
-  <h2>最新更新</h2>
-  <a href="/faqs" class="btn btn-outline btn-sm">查看全部</a>
+<div class="section-xai section-xai--spaced">
+  <p class="section-kicker">[ Latest ]</p>
+  <div class="page-header page-header--xai">
+    <h2 class="section-title-xai">最新更新</h2>
+    <a href="/faqs" class="btn btn-ghost btn-sm">VIEW ALL</a>
+  </div>
 </div>
 <div class="recent-list">
   <% recentFaqs.forEach(faq => { %>
@@ -46,16 +56,16 @@
         </div>
       </div>
       <div class="recent-actions">
-        <span class="recent-time"><%= faq.updated_at %></span>
-        <button class="btn btn-outline btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">复制链接</button>
+        <span class="recent-time mono-caps"><%= faq.updated_at %></span>
+        <button class="btn btn-ghost btn-sm" onclick="copyShareLink(<%= faq.id %>, this)">COPY LINK</button>
       </div>
     </div>
   <% }) %>
   <% if (recentFaqs.length === 0) { %>
-    <div class="card" style="text-align:center;color:#888;">暂无内容</div>
+    <div class="card card--muted">暂无内容</div>
   <% } %>
 </div>
 
-<div style="margin-top:20px;text-align:center;">
-  <a href="/faqs/new" class="btn btn-primary" style="padding:10px 24px;font-size:1em;">+ 添加新问题</a>
+<div class="text-center mt-section-xai">
+  <a href="/faqs/new" class="btn btn-primary">NEW ARTICLE</a>
 </div>

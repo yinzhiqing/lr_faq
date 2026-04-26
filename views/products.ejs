@@ -4,7 +4,7 @@
 
 <div class="two-col">
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">
+    <h2 class="section-heading section-heading--compact">
       <%= current ? '编辑产品' : '新建产品' %>
     </h2>
     <form action="<%= current ? `/products/${current.id}/edit` : '/products' %>" method="post">
@@ -24,16 +24,16 @@
   </div>
 
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">产品列表</h2>
+    <h2 class="section-heading">产品列表</h2>
     <% if (products.length === 0) { %>
-      <p style="color:#888">暂无产品，请先创建产品。</p>
+      <p class="text-tertiary">暂无产品，请先创建产品。</p>
     <% } else { %>
       <table>
         <thead><tr><th>名称</th><th>描述</th><th>知识数</th><th>操作</th></tr></thead>
         <% products.forEach(p => { %>
           <tr>
             <td><strong><%= p.name %></strong></td>
-            <td style="color:#888;font-size:0.85em"><%= p.description || '-' %></td>
+            <td class="td-muted"><%= p.description || '-' %></td>
             <td><a href="/faqs?product=<%= p.id %>"><%= p.faq_count %></a></td>
             <td>
               <div class="btn-group">

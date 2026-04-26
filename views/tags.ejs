@@ -4,7 +4,7 @@
 
 <div class="two-col">
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">
+    <h2 class="section-heading section-heading--compact">
       <%= current ? '编辑标签' : '新建标签' %>
     </h2>
     <form action="<%= current ? `/tags/${current.id}/edit` : '/tags' %>" method="post">
@@ -20,9 +20,9 @@
   </div>
 
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">标签列表</h2>
+    <h2 class="section-heading">标签列表</h2>
     <% if (tags.length === 0) { %>
-      <p style="color:#888">暂无标签。</p>
+      <p class="text-tertiary">暂无标签。</p>
     <% } else { %>
       <table>
         <thead><tr><th>名称</th><th>关联 FAQ 数</th><th>操作</th></tr></thead>

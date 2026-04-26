@@ -68,5 +68,5 @@ app.use('/faqs', require('./routes/faqs'));
 app.use('/files', require('./routes/files'));
 
 app.listen(PORT, () => {
-  console.log(`产品知识库已启动: http://localhost:3000`);
+  console.log(`产品知识库已启动: http://localhost:${PORT}`);
 });

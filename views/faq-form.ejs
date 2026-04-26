@@ -5,7 +5,7 @@ const pageTitle = isEdit ? '编辑问题' : '添加问题';
 
 <h1><%= pageTitle %></h1>
 
-<div class="suggestions" id="suggestions-box" style="display:none"></div>
+<div class="suggestions is-hidden" id="suggestions-box" aria-live="polite"></div>
 
 <form action="<%= isEdit ? `/faqs/${faq.id}/edit` : '/faqs' %>" method="post" enctype="multipart/form-data">
   <div class="card">
@@ -39,7 +39,7 @@ const pageTitle = isEdit ? '编辑问题' : '添加问题';
     </div>
     <div class="form-group">
       <label>答案（支持 Markdown）</label>
-      <textarea name="answer" id="answer" style="min-height:250px"><%= faq ? faq.answer : '' %></textarea>
+      <textarea name="answer" id="answer" class="textarea-tall"><%= faq ? faq.answer : '' %></textarea>
     </div>
   </div>
 
@@ -47,9 +47,9 @@ const pageTitle = isEdit ? '编辑问题' : '添加问题';
     <div class="form-row">
       <div class="form-group">
         <label>标签</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;">
+        <div class="tag-check-group">
           <% allTags.forEach(t => { %>
-            <label style="font-weight:normal;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:0.9em;">
+            <label class="tag-check">
               <input type="checkbox" name="tag_ids" value="<%= t.id %>"
                 <%= (faq && faq.tags && faq.tags.some(ft => ft.id === t.id)) ? 'checked' : '' %>>
               <%= t.name %>
@@ -66,8 +66,8 @@ const pageTitle = isEdit ? '编辑问题' : '添加问题';
       <input type="file" name="files" multiple accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip">
     </div>
     <% if (faq && faq.files && faq.files.length > 0) { %>
-      <div style="margin-top:8px;">
-        <p style="font-size:0.85em;color:#888">已有附件:</p>
+      <div class="mt-section">
+        <p class="caption">已有附件:</p>
         <div class="file-list">
           <% faq.files.forEach(f => { %>
             <div class="file-item">
@@ -80,7 +80,7 @@ const pageTitle = isEdit ? '编辑问题' : '添加问题';
     <% } %>
   </div>
 
-  <div class="btn-group" style="margin-bottom:20px;">
+  <div class="btn-group btn-mb-group">
     <button type="submit" class="btn btn-primary">保存</button>
     <a href="<%= isEdit ? `/faqs/${faq.id}` : '/faqs' %>" class="btn btn-outline">取消</a>
   </div>
@@ -94,20 +94,20 @@ const box = document.getElementById('suggestions-box');
 async function fetchSuggestions() {
   const title = titleEl?.value || '';
   const question = questionEl?.value || '';
-  if (!title && !question) { box.style.display = 'none'; return; }
+  if (!title && !question) { box.classList.add('is-hidden'); return; }
   try {
     const resp = await fetch(`/faqs/api/classify/suggest?title=${encodeURIComponent(title)}&question=${encodeURIComponent(question)}`);
     const data = await resp.json();
     if (data.categories.length > 0 || data.tags.length > 0) {
-      box.style.display = 'block';
+      box.classList.remove('is-hidden');
       let html = '<strong>自动分类建议：</strong> ';
       if (data.categories.length > 0) html += '分类 → ' + data.categories.map(c => `<em>${c}</em>`).join(', ') + ' ';
       if (data.tags.length > 0) html += '标签 → ' + data.tags.map(t => `<em>${t}</em>`).join(', ');
       box.innerHTML = html;
     } else {
-      box.style.display = 'none';
+      box.classList.add('is-hidden');
     }
-  } catch(e) { box.style.display = 'none'; }
+  } catch(e) { box.classList.add('is-hidden'); }
 }
 
 let debounceTimer;

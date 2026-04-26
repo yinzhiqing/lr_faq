@@ -4,38 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= locals.title || '产品知识库' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">产品知识库</a>
-      <div class="nav-links">
-        <a href="/faqs">全部问题</a>
-        <% if (locals.currentUser) { %>
-          <a href="/faqs/new">添加问题</a>
-          <% if (currentUser.role === 'admin') { %>
-            <a href="/products">产品</a>
-            <a href="/categories">分类</a>
-            <a href="/tags">标签</a>
-            <a href="/users">用户</a>
+  <nav class="navbar" id="site-nav">
+    <div class="container nav-bar-inner">
+      <a href="/" class="logo" title="产品知识库">
+        <span class="logo-mono">KB</span><span class="logo-slash" aria-hidden="true">/</span><span class="logo-zh">知识库</span>
+      </a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-controls="nav-collapsible" aria-expanded="false" aria-label="打开菜单">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="nav-collapsible" id="nav-collapsible">
+        <div class="nav-links">
+          <a href="/faqs">全部问题</a>
+          <% if (locals.currentUser) { %>
+            <a href="/faqs/new">添加问题</a>
+            <% if (currentUser.role === 'admin') { %>
+              <a href="/products">产品</a>
+              <a href="/categories">分类</a>
+              <a href="/tags">标签</a>
+              <a href="/users">用户</a>
+            <% } %>
           <% } %>
-        <% } %>
-      </div>
-      <div class="nav-search">
-        <form action="/faqs" method="get" class="nav-search-form">
-          <input type="text" name="q" placeholder="快速搜索...">
-          <button type="submit">搜索</button>
-        </form>
-      </div>
-      <div class="nav-user">
-        <% if (locals.currentUser) { %>
-          <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
-          <span class="nav-username"><%= currentUser.username %></span>
-          <a href="/auth/logout" class="nav-logout">退出</a>
-        <% } else { %>
-          <a href="/auth/login" class="nav-login">登录</a>
-        <% } %>
+        </div>
+        <div class="nav-search">
+          <form action="/faqs" method="get" class="nav-search-form">
+            <input type="text" name="q" placeholder="Search…" aria-label="搜索">
+            <button type="submit" class="btn btn-primary btn-sm">Go</button>
+          </form>
+        </div>
+        <div class="nav-user">
+          <% if (locals.currentUser) { %>
+            <span class="nav-role"><%= currentUser.role === 'admin' ? '管理员' : '用户' %></span>
+            <span class="nav-username nav-mono"><%= currentUser.username %></span>
+            <a href="/auth/logout" class="nav-logout nav-mono">LOG OUT</a>
+          <% } else { %>
+            <a href="/auth/login" class="btn btn-primary btn-sm nav-login-btn">SIGN IN</a>
+          <% } %>
+        </div>
       </div>
     </div>
   </nav>
@@ -43,6 +54,18 @@
     <%- body %>
   </main>
   <script>
+  (function () {
+    var nav = document.getElementById('site-nav');
+    var btn = document.getElementById('nav-toggle');
+    var panel = document.getElementById('nav-collapsible');
+    if (!btn || !nav || !panel) return;
+    btn.addEventListener('click', function () {
+      var open = !nav.classList.contains('navbar--open');
+      nav.classList.toggle('navbar--open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    });
+  })();
   function copyShareLink(faqId, btn) {
     const url = window.location.origin + '/faqs/' + faqId;
     navigator.clipboard.writeText(url).then(() => {

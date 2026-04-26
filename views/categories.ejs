@@ -4,7 +4,7 @@
 
 <div class="two-col">
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">
+    <h2 class="section-heading section-heading--compact">
       <%= current ? '编辑分类' : '新建分类' %>
     </h2>
     <form action="<%= current ? `/categories/${current.id}/edit` : '/categories' %>" method="post">
@@ -51,9 +51,9 @@
   </div>
 
   <div class="card">
-    <h2 style="font-size:1.1em;margin-bottom:12px">分类列表</h2>
+    <h2 class="section-heading">分类列表</h2>
     <% function renderTree(list) {
-      if (list.length === 0) { %><p style="color:#888">暂无分类。</p><% return; }
+      if (list.length === 0) { %><p class="text-tertiary">暂无分类。</p><% return; }
       list.forEach(c => { %>
         <div class="tree-item">
           <span class="name"><%= c.name %></span>
