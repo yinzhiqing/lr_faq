@@ -116,7 +116,7 @@
     kbSection +
     '<div class="live-chat__msgs" id="live-chat-msgs" role="log"></div>' +
     '<form class="live-chat__form" id="live-chat-form">' +
-    '<textarea id="live-chat-input" class="live-chat__input live-chat__input--compose" rows="2" maxlength="2000" placeholder="输入消息…" autocomplete="off" aria-label="消息内容"></textarea>' +
+    '<textarea id="live-chat-input" class="live-chat__input live-chat__input--compose" rows="2" maxlength="2000" placeholder="输入消息…（Enter 发送，Shift+Enter 换行）" autocomplete="off" aria-label="消息内容，Enter 发送，Shift+Enter 换行"></textarea>' +
     '<button type="submit" class="live-chat__send btn btn-primary btn-sm">发送</button></form>' +
     staffLayoutClose +
     '</div>';
@@ -138,6 +138,7 @@
 
   var fab = document.getElementById('live-chat-fab');
   var panel = document.getElementById('live-chat-panel');
+  var muteBtnEl = null;
   if (UI_ROLE === 'staff') {
     panel.classList.add('live-chat__panel--staff');
   }
@@ -167,7 +168,6 @@
   var unreadCount = 0;
   var baseTitle = document.title;
   var badgeEl = document.getElementById('live-chat-badge');
-  var muteBtnEl = null;
 
   function isChatNotifySoundMuted() {
     try {
@@ -679,6 +679,18 @@
     if (UI_ROLE === 'staff') payload.sessionId = activeSessionId;
     ws.send(JSON.stringify(payload));
     input.value = '';
+  });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    if (e.isComposing || e.keyCode === 229) return;
+    e.preventDefault();
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+    } else {
+      var sub = form.querySelector('button[type="submit"]');
+      if (sub) sub.click();
+    }
   });
 
   var MAX_MSG = 2000;
