@@ -92,7 +92,24 @@ db.exec(`
     text TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );
 `);
+
+(function seedSiteSettings() {
+  const hasMod = db.prepare("SELECT 1 FROM site_settings WHERE key = 'guest_module_home'").get();
+  if (!hasMod) {
+    const ga = db.prepare("SELECT value FROM site_settings WHERE key = 'guest_access'").get();
+    const on = !ga || ga.value !== 'members_only' ? '1' : '0';
+    const ins = db.prepare('INSERT INTO site_settings (key, value) VALUES (?, ?)');
+    ins.run('guest_module_home', on);
+    ins.run('guest_module_faqs', on);
+    ins.run('guest_module_files', on);
+  }
+})();
 
 // Seed admin user
 const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get();

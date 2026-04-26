@@ -1,0 +1,29 @@
+<div class="page-header">
+  <h1>系统设置</h1>
+</div>
+
+<% if (saved) { %>
+  <div class="alert alert--success" role="status">已保存。</div>
+<% } %>
+
+<div class="card card--settings-narrow">
+  <h2 class="section-heading section-heading--compact">未登录可访问的模块</h2>
+  <p class="caption mb-3">按需勾选；可全部关闭（仅登录后可用）。聊天、后台管理、添加/编辑 FAQ 等始终需登录。附件包含文件下载/预览及知识库内视频使用的 <code>/uploads</code> 资源。</p>
+  <form action="/settings/guest-modules" method="post">
+    <div class="form-group">
+      <label class="settings-check-line">
+        <input type="checkbox" name="guest_home" value="1" <%= guestModules.home ? 'checked' : '' %>>
+        <span><strong>首页</strong> — 产品概览与最近 FAQ 列表</span>
+      </label>
+      <label class="settings-check-line">
+        <input type="checkbox" name="guest_faqs" value="1" <%= guestModules.faqs ? 'checked' : '' %>>
+        <span><strong>知识库</strong> — 全部问题、搜索与条目详情（不含后台编辑入口）</span>
+      </label>
+      <label class="settings-check-line">
+        <input type="checkbox" name="guest_files" value="1" <%= guestModules.files ? 'checked' : '' %>>
+        <span><strong>附件与媒体</strong> — <code>/files/…</code> 与 <code>/uploads/…</code></span>
+      </label>
+    </div>
+    <button type="submit" class="btn btn-primary">保存</button>
+  </form>
+</div>

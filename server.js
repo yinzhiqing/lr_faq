@@ -4,6 +4,7 @@ const session = require('express-session');
 const path = require('path');
 const ejsLayouts = require('express-ejs-layouts');
 const { exposeUser, requireAdmin } = require('./middleware/auth');
+const { exposeGuestAccess, guestAccessGuard } = require('./middleware/guestAccess');
 const { attachLiveChat } = require('./lib/liveChat');
 
 const app = express();
@@ -23,14 +24,13 @@ app.use(sessionMiddleware);
 
 attachLiveChat(server, sessionMiddleware);
 
-// Expose user to all views
 app.use(exposeUser);
+app.use(exposeGuestAccess);
 
-// Static files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(guestAccessGuard);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('layout', 'layout');
@@ -57,6 +57,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', require('./routes/auth'));
+
+app.use('/settings', require('./routes/settings'));
 
 app.use('/chat', require('./routes/chat'));
 

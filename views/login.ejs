@@ -2,6 +2,11 @@
   <div class="login-card">
     <h1>产品知识库</h1>
     <p class="login-sub">请登录以继续</p>
+    <% if (locals.guestPublicLockedDown) { %>
+      <p class="login-sub login-sub--note">当前<strong>未开放任何访客模块</strong>，请登录后使用。</p>
+    <% } else if (locals.guestModules && (!guestModules.home || !guestModules.faqs || !guestModules.files)) { %>
+      <p class="login-sub login-sub--note">部分栏目仅登录后可用，登录后可访问全部功能。</p>
+    <% } %>
     <% if (error) { %><div class="alert alert--error" role="alert"><%= error %></div><% } %>
     <form action="/auth/login" method="post">
       <input type="hidden" name="return" value="<%= returnUrl %>">
@@ -16,8 +21,7 @@
       <button type="submit" class="btn btn-primary btn-block">登录</button>
     </form>
     <div class="login-hint">
-      <p>管理员: admin / admin123</p>
-      <p>普通用户: user1 / user123</p>
+      <p class="caption">演示账号：管理员 admin / admin123；用户 user1 / user123</p>
     </div>
   </div>
 </div>

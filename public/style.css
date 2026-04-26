@@ -1059,6 +1059,81 @@ html[data-theme="dark"] .alert--error {
   color: #ff9f0a;
   border-color: rgba(255, 159, 10, 0.35);
 }
+.alert--success {
+  border-color: rgba(52, 199, 89, 0.45);
+  color: #1d7a3a;
+  background: rgba(52, 199, 89, 0.08);
+}
+html[data-theme="dark"] .alert--success {
+  color: #4cd964;
+  border-color: rgba(48, 209, 88, 0.45);
+  background: rgba(48, 209, 88, 0.1);
+}
+
+.card--settings-narrow { max-width: 640px; }
+
+.product-card--muted {
+  opacity: 0.85;
+  cursor: default;
+  border: 1px dashed var(--border-default);
+}
+.settings-radio-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.settings-radio-line input { margin-top: 3px; flex-shrink: 0; }
+
+.settings-check-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.settings-check-line input { margin-top: 3px; flex-shrink: 0; }
+.settings-check-line code {
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-subtle);
+}
+
+body.layout-login {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+}
+.login-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-elevated);
+}
+.login-topbar__brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.login-sub--note {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  max-width: 22rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
 
 /* —— File icons / video —— */
 .file-icon {

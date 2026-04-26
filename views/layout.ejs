@@ -17,15 +17,18 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <% var gm = locals.guestModules || { home: true, faqs: true, files: true }; %>
   <nav class="navbar" id="site-nav">
     <div class="container nav-bar-inner">
-      <a href="/" class="logo" title="产品知识库">产品知识库</a>
+      <a href="<%= (locals.currentUser || gm.home) ? '/' : '/auth/login' %>" class="logo" title="产品知识库">产品知识库</a>
       <button type="button" class="nav-toggle" id="nav-toggle" aria-controls="nav-collapsible" aria-expanded="false" aria-label="打开菜单">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="nav-collapsible" id="nav-collapsible">
         <div class="nav-links">
-          <a href="/faqs">全部问题</a>
+          <% if (locals.currentUser || gm.faqs) { %>
+            <a href="/faqs">全部问题</a>
+          <% } %>
           <% if (locals.currentUser) { %>
             <% if (currentUser.role === 'admin' || currentUser.role === 'support') { %>
               <a href="/chat/history">聊天记录</a>
@@ -36,9 +39,11 @@
               <a href="/categories">分类</a>
               <a href="/tags">标签</a>
               <a href="/users">用户</a>
+              <a href="/settings">系统设置</a>
             <% } %>
           <% } %>
         </div>
+        <% if (locals.currentUser || gm.faqs) { %>
         <div class="nav-search">
           <form action="/faqs" method="get" class="nav-search-form">
             <input type="text" name="q" placeholder="搜索…" aria-label="搜索">
@@ -47,6 +52,7 @@
             </button>
           </form>
         </div>
+        <% } %>
         <div class="nav-user">
           <button type="button" class="btn btn-icon btn-ghost btn-sm theme-toggle" id="theme-toggle" aria-label="切换到深色模式" title="深色模式">
             <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>

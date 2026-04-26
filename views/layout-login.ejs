@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= locals.title || '登录 - 产品知识库' %></title>
+  <script>
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'light') { localStorage.removeItem('theme'); }
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="layout-login">
+  <div class="login-topbar">
+    <span class="login-topbar__brand">产品知识库</span>
+    <button type="button" class="btn btn-icon btn-ghost btn-sm theme-toggle" id="theme-toggle" aria-label="切换到深色模式" title="深色模式">
+      <svg class="btn-icon__svg theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.9 4.9l1.5 1.5m11.3 11.3l1.5 1.5M2 12h2m16 0h2M4.9 19.1l1.5-1.5M18.4 5.6l1.5-1.5"/></svg>
+      <svg class="btn-icon__svg theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+    </button>
+  </div>
+  <%- body %>
+  <script>
+  (function () {
+    var root = document.documentElement;
+    var KEY = 'theme';
+    function syncThemeToggle() {
+      var b = document.getElementById('theme-toggle');
+      if (!b) return;
+      var isDark = root.getAttribute('data-theme') === 'dark';
+      b.setAttribute('aria-label', isDark ? '切换到浅色模式' : '切换到深色模式');
+      b.setAttribute('title', isDark ? '浅色模式' : '深色模式');
+    }
+    var tbtn = document.getElementById('theme-toggle');
+    if (tbtn) {
+      tbtn.addEventListener('click', function () {
+        if (root.getAttribute('data-theme') === 'dark') {
+          root.removeAttribute('data-theme');
+          try { localStorage.removeItem(KEY); } catch (e) {}
+        } else {
+          root.setAttribute('data-theme', 'dark');
+          try { localStorage.setItem(KEY, 'dark'); } catch (e) {}
+        }
+        syncThemeToggle();
+      });
+    }
+    syncThemeToggle();
+  })();
+  </script>
+</body>
+</html>
