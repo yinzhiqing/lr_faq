@@ -43,8 +43,6 @@
   --space-5: 80px;
   --container-max: 1200px;
   --nav-blur: 20px;
-  /* 平铺水印（浅色底） */
-  --watermark-tile: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='820' height='500'%3E%3Ctext x='410' y='268' fill='%231d1d1f' fill-opacity='0.055' font-size='42' font-family='Inter,Noto Sans SC,PingFang SC,sans-serif' transform='rotate(-24 410 250)' text-anchor='middle'%3E%E5%8C%97%E4%BA%AC%E9%BE%99%E8%BD%AF%E7%A7%91%E6%8A%80%3C/text%3E%3C/svg%3E");
 }
 
 html[data-theme="dark"] {
@@ -72,7 +70,6 @@ html[data-theme="dark"] {
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
   --select-hover-border: rgba(255, 255, 255, 0.4);
   --select-arrow-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f5f5f7' fill-opacity='0.65' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
-  --watermark-tile: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='820' height='500'%3E%3Ctext x='410' y='268' fill='%23f5f5f7' fill-opacity='0.06' font-size='42' font-family='Inter,Noto Sans SC,PingFang SC,sans-serif' transform='rotate(-24 410 250)' text-anchor='middle'%3E%E5%8C%97%E4%BA%AC%E9%BE%99%E8%BD%AF%E7%A7%91%E6%8A%80%3C/text%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
@@ -96,13 +93,14 @@ body {
 /* 全站水印：北京龙软科技（在正文之下，不拦截点击） */
 body::before {
   content: "";
+  display: var(--watermark-display, block);
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background-image: var(--watermark-tile);
   background-repeat: repeat;
-  background-size: 820px 500px;
+  background-size: var(--watermark-size, 820px 500px);
 }
 
 main.container {

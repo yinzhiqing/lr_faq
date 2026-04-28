@@ -11,6 +11,17 @@
     if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   } catch (e) {}
   </script>
+  <% var wm = locals.watermark || {}; %>
+  <style>
+    :root {
+      --watermark-display: <%= wm.enabled === false ? 'none' : 'block' %>;
+      --watermark-tile: <%- wm.lightTile || `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='820' height='500'%3E%3Ctext x='410' y='268' fill='%231d1d1f' fill-opacity='0.055' font-size='42' font-family='Inter,Noto Sans SC,PingFang SC,sans-serif' transform='rotate(-24 410 250)' text-anchor='middle'%3E%E5%8C%97%E4%BA%AC%E9%BE%99%E8%BD%AF%E7%A7%91%E6%8A%80%3C/text%3E%3C/svg%3E")` %>;
+      --watermark-size: <%= wm.tileWidth || 820 %>px <%= wm.tileHeight || 500 %>px;
+    }
+    html[data-theme="dark"] {
+      --watermark-tile: <%- wm.darkTile || `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='820' height='500'%3E%3Ctext x='410' y='268' fill='%23f5f5f7' fill-opacity='0.06' font-size='42' font-family='Inter,Noto Sans SC,PingFang SC,sans-serif' transform='rotate(-24 410 250)' text-anchor='middle'%3E%E5%8C%97%E4%BA%AC%E9%BE%99%E8%BD%AF%E7%A7%91%E6%8A%80%3C/text%3E%3C/svg%3E")` %>;
+    }
+  </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">

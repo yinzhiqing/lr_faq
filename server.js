@@ -6,6 +6,7 @@ const ejsLayouts = require('express-ejs-layouts');
 const { exposeUser, requireAdmin } = require('./middleware/auth');
 const { exposeGuestAccess, guestAccessGuard } = require('./middleware/guestAccess');
 const { attachLiveChat } = require('./lib/liveChat');
+const { getWatermarkSettings } = require('./lib/siteSettings');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +27,10 @@ attachLiveChat(server, sessionMiddleware);
 
 app.use(exposeUser);
 app.use(exposeGuestAccess);
+app.use((req, res, next) => {
+  res.locals.watermark = getWatermarkSettings();
+  next();
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(guestAccessGuard);

@@ -27,3 +27,51 @@
     <button type="submit" class="btn btn-primary">保存</button>
   </form>
 </div>
+
+<div class="card card--settings-narrow">
+  <h2 class="section-heading section-heading--compact">全站水印</h2>
+  <p class="caption mb-3">保存后立即生效，并同时作用于浅色和深色主题。支持关闭水印、修改文字、透明度、字号、旋转角度和平铺尺寸。</p>
+  <form action="/settings/watermark" method="post">
+    <div class="form-group">
+      <label class="settings-check-line">
+        <input type="checkbox" name="watermark_enabled" value="1" <%= watermark.enabled ? 'checked' : '' %>>
+        <span><strong>启用水印</strong> — 关闭后全站不显示背景水印</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label for="watermark_text">水印文字</label>
+      <input id="watermark_text" type="text" name="watermark_text" value="<%= watermark.text %>" maxlength="60" placeholder="请输入水印文字">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="watermark_light_opacity">浅色主题透明度</label>
+        <input id="watermark_light_opacity" type="number" name="watermark_light_opacity" value="<%= watermark.lightOpacity %>" min="0.01" max="0.3" step="0.001">
+      </div>
+      <div class="form-group">
+        <label for="watermark_dark_opacity">深色主题透明度</label>
+        <input id="watermark_dark_opacity" type="number" name="watermark_dark_opacity" value="<%= watermark.darkOpacity %>" min="0.01" max="0.3" step="0.001">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="watermark_font_size">字号</label>
+        <input id="watermark_font_size" type="number" name="watermark_font_size" value="<%= watermark.fontSize %>" min="12" max="120" step="1">
+      </div>
+      <div class="form-group">
+        <label for="watermark_rotate">旋转角度</label>
+        <input id="watermark_rotate" type="number" name="watermark_rotate" value="<%= watermark.rotate %>" min="-89" max="89" step="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="watermark_tile_width">平铺宽度</label>
+        <input id="watermark_tile_width" type="number" name="watermark_tile_width" value="<%= watermark.tileWidth %>" min="240" max="2400" step="1">
+      </div>
+      <div class="form-group">
+        <label for="watermark_tile_height">平铺高度</label>
+        <input id="watermark_tile_height" type="number" name="watermark_tile_height" value="<%= watermark.tileHeight %>" min="160" max="1600" step="1">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">保存</button>
+  </form>
+</div>
