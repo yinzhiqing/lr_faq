@@ -1,0 +1,23 @@
+# 产品化部署：镜像 + 持久化卷 + 必选密钥
+# 使用：复制 .env.example 为 .env，填写 SESSION_SECRET 后执行 docker compose up -d
+
+services:
+  app:
+    build: .
+    image: faq-system:local
+    ports:
+      - "${PUBLISH_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATA_DIR: /data
+      SESSION_SECRET: ${SESSION_SECRET:?请在 .env 中设置 SESSION_SECRET}
+      # 置于 Nginx/负载均衡后时开启，并视情况设置 SESSION_COOKIE_SECURE=true（HTTPS）
+      TRUST_PROXY: ${TRUST_PROXY:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-}
+    volumes:
+      - faq_data:/data
+    restart: unless-stopped
+
+volumes:
+  faq_data:

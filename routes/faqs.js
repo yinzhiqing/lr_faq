@@ -3,14 +3,12 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
+const { uploadDir } = require('../lib/paths');
 const { requireAdminOrSupport } = require('../middleware/auth');
 const { logAudit } = require('../lib/auditLog');
 const { processVideo } = require('../services/transcode');
 
 const router = Router();
-
-const uploadDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
   destination: uploadDir,

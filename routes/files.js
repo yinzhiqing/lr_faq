@@ -2,11 +2,11 @@ const { Router } = require('express');
 const path = require('path');
 const fs = require('fs');
 const db = require('../db/database');
+const { uploadDir } = require('../lib/paths');
 const { requireAdminOrSupport } = require('../middleware/auth');
 const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
-const uploadDir = path.join(__dirname, '..', 'uploads');
 
 router.get('/:id/view', (req, res) => {
   const file = db.prepare('SELECT * FROM files WHERE id = ?').get(req.params.id);

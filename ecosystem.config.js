@@ -5,7 +5,10 @@ module.exports = {
     cwd: __dirname,
     env: {
       NODE_ENV: 'production',
-      PORT: 3000
+      PORT: 3000,
+      // 生产必须设置，与 Docker 部署一致
+      // SESSION_SECRET: 'openssl rand -base64 48',
+      // 在 Nginx 后: TRUST_PROXY: '1', SESSION_COOKIE_SECURE: 'true'
     },
     // 日志
     log_date_format: 'YYYY-MM-DD HH:mm:ss',

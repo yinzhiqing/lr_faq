@@ -17,6 +17,17 @@ npm run dev
 
 访问 `http://localhost:3000`
 
+## 产品化部署（Docker / 发布）
+
+**新手请直接看：[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**（Docker 安装、逐步部署、备份与常见问题）。
+
+- **本地/单机容器**：复制 `.env.example` 为 `.env`，填写 `SESSION_SECRET`（可用 `openssl rand -base64 48`），执行 `docker compose up -d`。数据与上传文件在命名卷 `faq_data`（容器内 `/data`）。
+- **健康检查**：`GET /health`，供负载均衡或编排探活。
+- **反向代理**：设置 `TRUST_PROXY=1`；若对用户提供 **HTTPS**，再加 `SESSION_COOKIE_SECURE=true`。
+- **版本镜像**：推送 git 标签 `v1.2.3` 时，GitHub Actions 会向 `ghcr.io/<owner>/<repo>` 构建并推送镜像（需仓库具备 Packages 写权限）。
+
+生产环境直接运行 Node 时同样需要 `NODE_ENV=production` 与 `SESSION_SECRET`；可用 `pm2 start ecosystem.config.js` 做进程守护。
+
 ## 默认账号
 
 | 角色 | 用户名 | 密码 |

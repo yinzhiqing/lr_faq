@@ -24,7 +24,14 @@ npm install --production
 # 创建必要目录
 mkdir -p uploads
 
+# 生产环境请设置 SESSION_SECRET；置于反向代理后建议 TRUST_PROXY=1
+if [ "${NODE_ENV:-}" = "production" ] && [ -z "${SESSION_SECRET:-}" ]; then
+    echo "错误: 生产环境请设置 SESSION_SECRET"
+    exit 1
+fi
+
 # 启动服务
 PORT=${PORT:-3000}
 echo "启动服务 (端口: $PORT)..."
+echo "健康检查: http://localhost:$PORT/health"
 node server.js

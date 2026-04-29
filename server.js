@@ -8,15 +8,39 @@ const { exposeGuestAccess, guestAccessGuard } = require('./middleware/guestAcces
 const { attachLiveChat } = require('./lib/liveChat');
 const { getWatermarkSettings } = require('./lib/siteSettings');
 
+const { uploadDir } = require('./lib/paths');
+
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
+
+if (isProd && !process.env.SESSION_SECRET) {
+  console.error('生产环境必须设置环境变量 SESSION_SECRET（足够长的随机字符串）');
+  process.exit(1);
+}
+
+const sessionSecret =
+  process.env.SESSION_SECRET || 'dev-only-insecure-session-secret';
+
+if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
 
 const sessionMiddleware = session({
-  secret: 'faq-kb-secret-' + Math.random().toString(36),
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 },
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: process.env.SESSION_COOKIE_SECURE === 'true',
+    sameSite: 'lax',
+  },
+});
+
+app.get('/health', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
 app.use(express.urlencoded({ extended: true }));
@@ -34,7 +58,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(guestAccessGuard);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadDir));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
