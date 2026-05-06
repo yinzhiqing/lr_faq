@@ -1,3 +1,6 @@
+# Docker Compose 默认 DATA_HOST_PATH（faq.db、uploads）
+/data/
+
 node_modules/
 *.db
 *.db-shm
