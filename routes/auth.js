@@ -6,6 +6,8 @@ const { logAudit } = require('../lib/auditLog');
 
 const router = Router();
 
+const showDemoLoginHint = process.env.NODE_ENV !== 'production';
+
 function renderChangePassword(req, res, opts) {
   res.render('change-password', {
     title: '修改密码',
@@ -21,6 +23,7 @@ router.get('/login', (req, res) => {
     title: '登录 - 产品知识库',
     error: null,
     returnUrl: req.query.return || '',
+    showDemoLoginHint,
   });
 });
 
@@ -38,6 +41,7 @@ router.post('/login', (req, res) => {
       title: '登录 - 产品知识库',
       error: '用户名或密码错误',
       returnUrl: req.body.return || '',
+      showDemoLoginHint,
     });
   }
   req.session.user = {
